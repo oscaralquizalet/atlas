@@ -30,7 +30,7 @@ img{max-width:100%;}
 /* ---------- Header / nav ---------- */
 header.top{
   position:sticky; top:0; z-index:1000;
-  background:linear-gradient(180deg, var(--verde-selva) 0%, #163a2b 100%);
+  background:var(--verde-selva);
   color:#F6F3EC;
   box-shadow:0 2px 10px rgba(0,0,0,.2);
 }
