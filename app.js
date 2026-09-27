@@ -420,10 +420,17 @@ function htmlBrToParagraphs(text){
     if(!p) return;
     if(p.indexOf('<br>-') !== -1 || p.indexOf('- ') === 0){
       var items = p.split('<br>').filter(Boolean);
-      html += '<ul>' + items.map(function(i){
-        i = i.replace(/^- /,'');
-        return i.trim() ? '<li>'+i+'</li>' : '';
-      }).join('') + '</ul>';
+      var listItems = [];
+      items.forEach(function(i){
+        i = i.trim();
+        if(!i) return;
+        if(i.indexOf('- ') === 0){
+          listItems.push('<li>'+i.replace(/^- /,'')+'</li>');
+        } else {
+          html += '<p>'+i+'</p>';
+        }
+      });
+      if(listItems.length) html += '<ul>' + listItems.join('') + '</ul>';
     } else {
       html += '<p>'+p.replace(/<br>/g,' ')+'</p>';
     }
