@@ -48,7 +48,7 @@ header.top{
 }
 .brand-text{ line-height:1.2; }
 .brand-text .t1{ font-family:var(--serif); font-size:16px; font-weight:700; color:#fff; }
-.brand-text .t1-iiali{ font-family:var(--sans); font-weight:800; font-size:32px; letter-spacing:3px; }
+.brand-text .t1-iiali{ font-family:Rockwell, 'Roboto Slab', Georgia, serif; font-weight:800; font-size:32px; letter-spacing:3px; }
 .brand-text .t2{ font-size:11.5px; color:#CFE3D4; letter-spacing:.3px; }
 nav.mainnav{ display:flex; gap:2px; flex-wrap:wrap; }
 nav.mainnav a{
