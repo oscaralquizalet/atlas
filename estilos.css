@@ -39,7 +39,7 @@ header.top{
   display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
 }
 .brand{ display:flex; align-items:center; gap:12px; }
-.brand-logo{ height:40px; width:auto; display:block; }
+.brand-logo{ height:58px; width:auto; display:block; }
 .brand-mark{
   width:38px; height:38px; border-radius:50%; flex:none;
   background:radial-gradient(circle at 35% 30%, var(--verde-claro), var(--verde-selva) 70%);
@@ -48,7 +48,7 @@ header.top{
 }
 .brand-text{ line-height:1.2; }
 .brand-text .t1{ font-family:var(--serif); font-size:16px; font-weight:700; color:#fff; }
-.brand-text .t1-iiali{ font-family:var(--sans); font-weight:800; font-size:19px; letter-spacing:4px; }
+.brand-text .t1-iiali{ font-family:var(--sans); font-weight:800; font-size:32px; letter-spacing:3px; }
 .brand-text .t2{ font-size:11.5px; color:#CFE3D4; letter-spacing:.3px; }
 nav.mainnav{ display:flex; gap:2px; flex-wrap:wrap; }
 nav.mainnav a{
@@ -187,7 +187,7 @@ footer{ background:var(--verde-selva); color:#D9E6DA; padding:32px 20px; font-si
 footer a{ color:#fff; }
 
 @media (max-width:600px){
-  .top-inner{ padding:10px 14px; }
+  .top-inner{ padding:18px 20px; }
   nav.mainnav{ display:none; }
   section{ padding:40px 16px; }
   .hero{ padding:52px 16px 44px; }
