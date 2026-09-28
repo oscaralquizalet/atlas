@@ -192,7 +192,58 @@ layerDefs.forEach(function(def){
   });
 });
 
-// ---------- Color mode toggle ----------
+// ---------- Sub-listas desplegables por capa ----------
+function zoomToItem(def, item){
+  if(!map.hasLayer(def.group)){
+    def.group.addTo(map);
+    document.getElementById('chk-'+def.key).checked = true;
+  }
+  var center;
+  if(item.lat !== undefined){
+    center = L.latLng(item.lat, item.lng);
+    map.setView(center, 10);
+  } else if(item.geometry){
+    var b = L.geoJSON(item.geometry).getBounds();
+    map.fitBounds(b, { maxZoom: 9 });
+    center = b.getCenter();
+  } else { return; }
+  var found = null;
+  def.group.eachLayer(function(l){ if(l._atlasItem === item){ found = l; } });
+  if(found){ found.openPopup(center); }
+  else { L.popup().setLatLng(center).setContent(buildPopup(item.name, item.props || {})).openOn(map); }
+}
+
+layerDefs.forEach(function(def){
+  var items = ATLAS_DATA[def.key];
+  if(!items || !items.length) return;
+  var row = document.getElementById('chk-'+def.key).parentNode;
+
+  var arrow = document.createElement('button');
+  arrow.type = 'button';
+  arrow.className = 'layer-arrow';
+  arrow.setAttribute('aria-label', 'Mostrar elementos de la capa');
+  arrow.textContent = '▸';
+  row.appendChild(arrow);
+
+  var sub = document.createElement('div');
+  sub.className = 'layer-sub';
+  sub.style.display = 'none';
+  items.slice().sort(function(a,b){ return a.name.localeCompare(b.name); }).forEach(function(item){
+    var li = document.createElement('div');
+    li.className = 'layer-sub-item';
+    li.textContent = item.name;
+    li.addEventListener('click', function(){ zoomToItem(def, item); });
+    sub.appendChild(li);
+  });
+  row.parentNode.insertBefore(sub, row.nextSibling);
+
+  arrow.addEventListener('click', function(){
+    var open = sub.style.display === 'none';
+    sub.style.display = open ? 'block' : 'none';
+    arrow.textContent = open ? '▾' : '▸';
+  });
+});
+
 function refreshDualColors(){
   layerDefs.forEach(function(def){
     if(!def.dual) return;
