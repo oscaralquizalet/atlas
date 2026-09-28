@@ -59,7 +59,7 @@ nav.mainnav a.active{ background:rgba(255,255,255,.16); }
 /* ---------- Hero ---------- */
 .hero{
   position:relative; overflow:hidden;
-  background:var(--verde-selva);
+  background:#5C1019;
   color:#F6F3EC; padding:74px 20px 64px;
 }
 .hero-inner{ max-width:900px; margin:0 auto; text-align:left; }
