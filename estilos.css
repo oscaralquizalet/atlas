@@ -59,9 +59,7 @@ nav.mainnav a.active{ background:rgba(255,255,255,.16); }
 /* ---------- Hero ---------- */
 .hero{
   position:relative; overflow:hidden;
-  background:
-    radial-gradient(1100px 460px at 15% -10%, rgba(116,165,127,.35), transparent 60%),
-    linear-gradient(180deg, #16362A 0%, var(--verde-selva) 55%, #1c4634 100%);
+  background:var(--verde-selva);
   color:#F6F3EC; padding:74px 20px 64px;
 }
 .hero-inner{ max-width:900px; margin:0 auto; text-align:left; }
