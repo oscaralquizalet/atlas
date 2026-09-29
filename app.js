@@ -456,7 +456,7 @@ function htmlBrToParagraphs(text){
   if(raw){
     el.innerHTML = htmlBrToParagraphs(raw);
   } else {
-    el.innerHTML = '<p>Este atlas reúne, por primera vez en un solo mapa, la localización y la situación de vitalidad lingüística de los pueblos indígenas de la Amazonía boliviana. Consulta el documento completo de introducción para conocer el marco metodológico.</p>';
+    el.innerHTML = '<p>Este atlas reúne, por primera vez en un solo mapa, la localización y la situación de vitalidad lingüística de los Pueblos Indígenas de la Amazonía boliviana. Consulta el documento completo de introducción para conocer el marco metodológico.</p>';
   }
 })();
 
