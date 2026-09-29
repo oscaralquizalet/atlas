@@ -456,7 +456,7 @@ function htmlBrToParagraphs(text){
   if(raw){
     el.innerHTML = htmlBrToParagraphs(raw);
   } else {
-    el.innerHTML = '<p>Este atlas reúne, por primera vez en un solo mapa, la localización y la situación de vitalidad lingüística de los Pueblos Indígenas de la Amazonía boliviana. Consulta el documento completo de introducción para conocer el marco metodológico.</p>';
+    el.innerHTML = '<p>Este atlas reúne, por primera vez en un solo mapa, la localización y la situación de vitalidad lingüística de los pueblos indígenas de la Amazonía boliviana. Consulta el documento completo de introducción para conocer el marco metodológico.</p>';
   }
 })();
 
@@ -529,36 +529,35 @@ function htmlBrToParagraphs(text){
   });
 })();
 
-
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
   raw = raw.replace(/<img[^>]*>/,'').replace(/nombre:\s*INSTITUTO[\s\S]*$/,'').trim();
-  var lines = raw.split('<br>');
+  var blocks = raw.split('<br><br>').filter(Boolean);
   var html = '';
-  var pendingList = [];
-  function flushList(){
-    if(pendingList.length){
-      html += '<ul>' + pendingList.map(function(t){return '<li>'+t+'</li>';}).join('') + '</ul>';
-      pendingList = [];
-    }
-  }
-  lines.forEach(function(line){
-    line = line.replace(/\u00a0/g,' ').trim();
-    if(!line) return;
-    if(line.indexOf('¿') === 0){
-      flushList();
-      html += '<h4 style="margin:14px 0 4px;color:var(--verde-selva);">'+line+'</h4>';
-    } else if(line.indexOf('•') === 0 || /^\d+\.\s*/.test(line)){
-      pendingList.push(line.replace(/^•\s*/,'').replace(/^\d+\.\s*/,'').trim());
-    } else if(line.indexOf('http') === 0){
-      flushList();
-      html += '<p><a href="'+line+'" target="_blank" rel="noopener">'+line+'</a></p>';
+  blocks.forEach(function(b){
+    b = b.trim();
+    if(!b) return;
+    if(b.indexOf('http') === 0){
+      html += '<p><a href="'+b+'" target="_blank" rel="noopener">'+b+'</a></p>';
+    } else if(b.indexOf('•') !== -1 || /^\d+\.\t/.test(b)){
+      var items = b.split('<br>').filter(Boolean);
+      html += '<ul>' + items.map(function(i){
+        i = i.replace(/^[•\d.\t]+/,'').trim();
+        return i ? '<li>'+i+'</li>' : '';
+      }).join('') + '</ul>';
+    } else if(b.indexOf('¿') === 0){
+      var idx = b.indexOf('<br>');
+      if(idx !== -1){
+        html += '<h4 style="margin:14px 0 4px;color:var(--verde-selva);">'+b.slice(0,idx)+'</h4><p>'+b.slice(idx+4)+'</p>';
+      } else {
+        html += '<p>'+b+'</p>';
+      }
     } else {
-      flushList();
-      html += '<p>'+line+'</p>';
+      html += '<p>'+b.replace(/<br>/g,' ')+'</p>';
     }
   });
-  flushList();
   document.getElementById('iiali-text').innerHTML = html || '<p>El Instituto Iberoamericano de Lenguas Indígenas (IIALI) coopera con Estados, pueblos indígenas e instituciones académicas para la preservación del plurilingüismo en Iberoamérica.</p>';
+})();
+
 })();
