@@ -530,7 +530,6 @@ function htmlBrToParagraphs(text){
 })();
 
 // IIALI
-// IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
   raw = raw.replace(/<img[^>]*>/,'').replace(/nombre:\s*INSTITUTO[\s\S]*$/,'').trim();
