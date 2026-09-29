@@ -557,7 +557,7 @@ function htmlBrToParagraphs(text){
       html += '<p>'+b.replace(/<br>/g,' ')+'</p>';
     }
   });
-  document.getElementById('iiali-text').innerHTML = html || '<p>El Instituto Iberoamericano de Lenguas Indígenas (IIALI) coopera con Estados, pueblos indígenas e instituciones académicas para la preservación del plurilingüismo en Iberoamérica.</p>';
+  document.getElementById('iiali-text').innerHTML = html || '<p>El Instituto Iberoamericano de Lenguas Indígenas (IIALI) coopera con Estados, Pueblos Indígenas e instituciones académicas para la preservación del plurilingüismo en Iberoamérica.</p>';
 })();
 
 })();
