@@ -80,7 +80,7 @@ nav.mainnav a.active{ background:rgba(255,255,255,.16); }
 .btn-ghost:hover{ background:rgba(255,255,255,.1); }
 
 /* ---------- Sections ---------- */
-section{ padding:56px 20px; max-width:1180px; margin:0 auto; }
+section{ padding:32px 20px; max-width:1180px; margin:0 auto; }
 section.narrow{ max-width:800px; }
 section .section-head{ margin-bottom:28px; }
 section .section-head .kicker{ color:var(--ocre); font-size:30px; margin-bottom:6px; }
