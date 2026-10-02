@@ -528,7 +528,95 @@ function htmlBrToParagraphs(text){
     grid.appendChild(card);
   });
 })();
+// Dashboard resumen
+(function(){
+  function gradoOf(item){
+    return norm(item.props['Grado de vitalidad'] || item.props['Grado de vitalidad de la lengua'] || '');
+  }
+  function colorOf(key){
+    return (ATLAS_DATA.grado_color && ATLAS_DATA.grado_color[key]) || '#999999';
+  }
 
+  var stats = [
+    { n: ATLAS_DATA.pueblos.length, t:'Pueblos Indígenas identificados en el área geocultural Amazonía boliviana' },
+    { n: ATLAS_DATA.tco.length, t:'Territorios indígenas (TCO) reconocidos por el Estado boliviano' },
+    { n: ATLAS_DATA.comunidades.length, t:'Comunidades focalizadas para el trabajo de campo' },
+    { n: GRADO_ORDER.length, t:'Niveles de vitalidad de los idiomas indígenas en la Amazonía boliviana' }
+  ];
+  var statRow = document.getElementById('stat-row');
+  stats.forEach(function(s){
+    var card = document.createElement('div');
+    card.className = 'stat-card';
+    card.innerHTML = '<div class="stat-circle">'+s.n+'</div><div class="stat-label">'+s.t+'</div>';
+    statRow.appendChild(card);
+  });
+
+  var countByGrado = {};
+  GRADO_ORDER.forEach(function(g){ countByGrado[g] = []; });
+  ATLAS_DATA.pueblos.forEach(function(it){
+    var g = gradoOf(it);
+    if(countByGrado[g]){ countByGrado[g].push(it.name); }
+  });
+
+  var totalPueblos = ATLAS_DATA.pueblos.length;
+  var idxEnPeligro = GRADO_ORDER.indexOf('en peligro');
+  var idxCritica = GRADO_ORDER.indexOf('situacion critica');
+  function sumFrom(idx){
+    var n = 0;
+    GRADO_ORDER.forEach(function(g,i){ if(i >= idx) n += countByGrado[g].length; });
+    return n;
+  }
+  var nPeligroOMas = sumFrom(idxEnPeligro);
+  var nCriticaOMas = sumFrom(idxCritica);
+  var pctPeligro = totalPueblos ? Math.round(nPeligroOMas/totalPueblos*100) : 0;
+
+  var highlights = [
+    { num: nPeligroOMas+' de '+totalPueblos+' ('+pctPeligro+'%)', txt:'idiomas indígenas se encuentran entre los niveles "en peligro" y "extinto".' },
+    { num: nCriticaOMas, txt:'idiomas están en situación crítica o ya silenciados/extintos.' }
+  ];
+  var hRow = document.getElementById('highlight-row');
+  highlights.forEach(function(h){
+    var card = document.createElement('div');
+    card.className = 'highlight-card';
+    card.innerHTML = '<div class="num">'+h.num+'</div><div class="txt">'+h.txt+'</div>';
+    hRow.appendChild(card);
+  });
+
+  var barsEl = document.getElementById('vital-bars');
+  var maxCount = Math.max.apply(null, GRADO_ORDER.map(function(g){ return countByGrado[g].length; }).concat([1]));
+  GRADO_ORDER.forEach(function(g){
+    var n = countByGrado[g].length;
+    var row = document.createElement('div');
+    row.className = 'vital-bar-row';
+    row.innerHTML =
+      '<div class="lbl">'+GRADO_LABELS[g]+'</div>'+
+      '<div class="vital-bar-track"><div class="vital-bar-fill" style="width:'+(n/maxCount*100)+'%;background:'+colorOf(g)+';"></div></div>'+
+      '<div class="cnt">'+n+'</div>';
+    barsEl.appendChild(row);
+  });
+
+  function buildTable(tableId, items){
+    var countG = {};
+    GRADO_ORDER.forEach(function(g){ countG[g] = []; });
+    items.forEach(function(it){
+      var g = gradoOf(it);
+      if(countG[g]){ countG[g].push(it.name); }
+    });
+    var table = document.getElementById(tableId);
+    var html = '<thead><tr><th>N°</th><th>Nivel de peligro</th><th>Elementos</th></tr></thead><tbody>';
+    GRADO_ORDER.forEach(function(g, i){
+      var names = countG[g].slice().sort();
+      var cell = names.length
+        ? '<ul>' + names.map(function(n){return '<li>'+escapeHtml(n)+'</li>';}).join('') + '</ul>'
+        : '<span class="vacio">Ninguna lengua</span>';
+      html += '<tr><td class="n">'+(i+1)+'</td><td class="nivel"><span class="dot" style="background:'+colorOf(g)+';"></span>'+GRADO_LABELS[g]+'</td><td>'+cell+'</td></tr>';
+    });
+    html += '</tbody>';
+    table.innerHTML = html;
+  }
+  buildTable('table-pueblos', ATLAS_DATA.pueblos);
+  buildTable('table-comunidades', ATLAS_DATA.comunidades);
+})();
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
@@ -560,6 +648,6 @@ function htmlBrToParagraphs(text){
   });
   flushList();
   document.getElementById('iiali-text').innerHTML = html || '<p>El Instituto Iberoamericano de Lenguas Indígenas (IIALI) coopera con Estados, pueblos indígenas e instituciones académicas para la preservación del plurilingüismo en Iberoamérica.</p>';
-})();
+})();// IIALI
 
 })();
