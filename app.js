@@ -649,6 +649,30 @@ function htmlBrToParagraphs(text){
   window.addEventListener('resize', updateHeight);
   updateHeight();
 })();
+// Resaltado del menú según la sección visible
+(function(){
+  var navLinks = document.querySelectorAll('nav.mainnav a[href^="#"]');
+  if(!navLinks.length) return;
+  var map = [];
+  navLinks.forEach(function(link){
+    var id = link.getAttribute('href').slice(1);
+    var section = document.getElementById(id);
+    if(section){ map.push({ link:link, section:section }); }
+  });
+  if(!map.length) return;
+
+  var observer = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        map.forEach(function(m){ m.link.classList.remove('active'); });
+        var match = map.filter(function(m){ return m.section === entry.target; })[0];
+        if(match) match.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+  map.forEach(function(m){ observer.observe(m.section); });
+})();
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
