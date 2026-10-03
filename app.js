@@ -169,7 +169,7 @@ addPolygonLayer('regiones', 'Regiones geoculturales', ATLAS_DATA.regiones, { fil
 addPolygonLayer('subregiones', 'Subregiones de la Amazonía', ATLAS_DATA.subregiones, { fillOpacity:0.32, weight:2.4, darkStroke:true, darkAmount:0.5, defaultOn:false });
 addLineLayer('departamentos', 'Departamentos de referencia', ATLAS_DATA.departamentos, { color:'#2B2B2B', weight:2.5, dashArray:'4,4', defaultOn:true });
 addLineLayer('rios', 'Ríos principales', ATLAS_DATA.rios, { color:'#2E6E8E', weight:1.3, defaultOn:true });
-addPolygonLayer('tco', 'Tierras Comunitarias de Origen (TCO)', ATLAS_DATA.tco, { fillOpacity:0.18, weight:2.2, strokeColor:'#6B5B2A', defaultOn:false });
+addPolygonLayer('tco', 'Tierras Comunitarias de Origen (TCO)', ATLAS_DATA.tco, { fillOpacity:0.28, weight:2.2, strokeColor:'#6B5B2A', defaultOn:false });
 addPolygonLayer('pueblos', 'Pueblos indígenas / vitalidad lingüística', ATLAS_DATA.pueblos, { dual:true, fillOpacity:0.55, weight:1, defaultOn:true });
 addPointLayer('comunidades', 'Comunidades focalizadas', ATLAS_DATA.comunidades, { defaultOn:true });
 
