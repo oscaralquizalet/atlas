@@ -118,21 +118,39 @@
     <h2>Resumen del Atlas</h2>
   </div>
 
-  <div class="stat-row" id="stat-row"></div>
+  <div class="carousel" id="dash-carousel">
+    <div class="carousel-viewport" id="dash-viewport">
+      <div class="carousel-track" id="dash-track">
 
-  <div class="highlight-row" id="highlight-row"></div>
+        <div class="carousel-slide">
+          <div class="stat-row" id="stat-row"></div>
+          <div class="highlight-row" id="highlight-row"></div>
+        </div>
 
-  <h3 style="margin-top:34px;">Distribución por grado de vitalidad</h3>
-  <div class="vital-bars" id="vital-bars"></div>
+        <div class="carousel-slide">
+          <h3>Distribución por grado de vitalidad</h3>
+          <div class="vital-bars" id="vital-bars"></div>
+        </div>
 
-  <h3 style="margin-top:34px;">Vitalidad lingüística en Pueblos Indígenas</h3>
-  <div class="dash-table-wrap">
-    <table class="dash-table" id="table-pueblos"></table>
-  </div>
+        <div class="carousel-slide">
+          <h3>Vitalidad lingüística en Pueblos Indígenas</h3>
+          <div class="dash-table-wrap">
+            <table class="dash-table" id="table-pueblos"></table>
+          </div>
+        </div>
 
-  <h3 style="margin-top:34px;">Vitalidad lingüística en comunidades focalizadas</h3>
-  <div class="dash-table-wrap">
-    <table class="dash-table" id="table-comunidades"></table>
+        <div class="carousel-slide">
+          <h3>Vitalidad lingüística en comunidades focalizadas</h3>
+          <div class="dash-table-wrap">
+            <table class="dash-table" id="table-comunidades"></table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <button class="carousel-arrow prev" id="dash-prev" aria-label="Anterior">‹</button>
+    <button class="carousel-arrow next" id="dash-next" aria-label="Siguiente">›</button>
+    <div class="carousel-dots" id="dash-dots"></div>
   </div>
 </section>
 

@@ -228,3 +228,17 @@ table.dash-table td.nivel{ width:230px; font-weight:600; }
 table.dash-table .dot{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
 table.dash-table ul{ margin:0; padding-left:18px; }
 table.dash-table .vacio{ color:#A79F8A; font-style:italic; }
+/* Carrusel del dashboard */
+.carousel{ position:relative; margin-top:12px; }
+.carousel-viewport{ overflow:hidden; border:1px solid var(--linea); border-radius:var(--radio); background:#fff; transition:height .3s ease; }
+.carousel-track{ display:flex; transition:transform .35s ease; }
+.carousel-slide{ flex:0 0 100%; min-width:100%; box-sizing:border-box; padding:22px; }
+.carousel-slide h3{ margin-top:0; }
+.carousel-arrow{ position:absolute; top:50%; transform:translateY(-50%); width:38px; height:38px; border-radius:50%; border:1px solid var(--linea); background:#fff; cursor:pointer; font-size:20px; color:var(--verde-selva); display:flex; align-items:center; justify-content:center; box-shadow:var(--sombra); z-index:5; }
+.carousel-arrow.prev{ left:-16px; }
+.carousel-arrow.next{ right:-16px; }
+.carousel-arrow:hover{ background:var(--papel-2); }
+.carousel-dots{ display:flex; justify-content:center; gap:8px; margin-top:14px; }
+.carousel-dots button{ width:9px; height:9px; border-radius:50%; border:none; background:var(--linea); cursor:pointer; padding:0; }
+.carousel-dots button.on{ background:var(--verde-selva); }
+@media (max-width:640px){ .carousel-arrow{ display:none; } }

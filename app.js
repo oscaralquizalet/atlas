@@ -617,6 +617,38 @@ function htmlBrToParagraphs(text){
   buildTable('table-pueblos', ATLAS_DATA.pueblos);
   buildTable('table-comunidades', ATLAS_DATA.comunidades);
 })();
+// Carrusel del dashboard
+(function(){
+  var track = document.getElementById('dash-track');
+  var viewport = document.getElementById('dash-viewport');
+  var prevBtn = document.getElementById('dash-prev');
+  var nextBtn = document.getElementById('dash-next');
+  var dotsEl = document.getElementById('dash-dots');
+  if(!track) return;
+  var slides = track.children;
+  var current = 0;
+
+  for(var i=0;i<slides.length;i++){
+    var dot = document.createElement('button');
+    if(i===0) dot.className = 'on';
+    dot.addEventListener('click', (function(idx){ return function(){ goTo(idx); }; })(i));
+    dotsEl.appendChild(dot);
+  }
+
+  function updateHeight(){
+    viewport.style.height = slides[current].offsetHeight + 'px';
+  }
+  function goTo(idx){
+    current = (idx + slides.length) % slides.length;
+    track.style.transform = 'translateX(-' + (current*100) + '%)';
+    Array.prototype.forEach.call(dotsEl.children, function(d,i){ d.className = i===current ? 'on' : ''; });
+    updateHeight();
+  }
+  prevBtn.addEventListener('click', function(){ goTo(current-1); });
+  nextBtn.addEventListener('click', function(){ goTo(current+1); });
+  window.addEventListener('resize', updateHeight);
+  updateHeight();
+})();
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
