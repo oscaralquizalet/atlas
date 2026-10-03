@@ -87,7 +87,18 @@ var colorMode = 'vitalidad'; // 'vitalidad' | 'pueblo'
 // ---------- Build layers from ATLAS_DATA ----------
 var layerDefs = []; // {key, label, type:'polygon'|'line'|'point', leafletLayer, dualColor}
 var geoLayers = {}; // key -> L.layerGroup
-
+function darken(hex, amount){
+  amount = amount || 0.45;
+  var h = hex.replace('#','');
+  var r = parseInt(h.substring(0,2),16);
+  var g = parseInt(h.substring(2,4),16);
+  var b = parseInt(h.substring(4,6),16);
+  r = Math.round(r*(1-amount));
+  g = Math.round(g*(1-amount));
+  b = Math.round(b*(1-amount));
+  function hex2(v){ var s = v.toString(16); return s.length===1 ? '0'+s : s; }
+  return '#' + hex2(r) + hex2(g) + hex2(b);
+}
 function styleColorOf(item, dual){
   if(dual){
     return colorMode === 'vitalidad' ? (item.color_vitalidad || '#999999') : (item.color_pueblo || '#2D6A4F');
@@ -103,7 +114,8 @@ function addPolygonLayer(key, label, items, opts){
     var layer = L.geoJSON(item.geometry, {
       style: function(){
         var c = styleColorOf(item, opts.dual);
-        return { color: opts.strokeColor || c, weight: opts.weight || 1.2, fillColor: c, fillOpacity: opts.fillOpacity == null ? 0.45 : opts.fillOpacity };
+        var stroke = opts.strokeColor || (opts.darkStroke ? darken(c, opts.darkAmount) : c);
+        return { color: stroke, weight: opts.weight || 1.2, fillColor: c, fillOpacity: opts.fillOpacity == null ? 0.45 : opts.fillOpacity };
       }
     });
     layer.bindPopup(buildPopup(item.name, item.props));
@@ -153,7 +165,7 @@ function addPointLayer(key, label, items, opts){
   layerDefs.push({ key:key, label:label, type:'point', dual:true, group:group, defaultOn: opts.defaultOn !== false });
 }
 
-addPolygonLayer('regiones', 'Regiones geoculturales', ATLAS_DATA.regiones, { fillOpacity:0.12, weight:1.5, defaultOn:false });
+addPolygonLayer('regiones', 'Regiones geoculturales', ATLAS_DATA.regiones, { fillOpacity:0.38, weight:2.2, darkStroke:true, darkAmount:0.5, defaultOn:false });
 addPolygonLayer('subregiones', 'Subregiones de la Amazonía', ATLAS_DATA.subregiones, { fillOpacity:0.10, weight:1.5, defaultOn:false });
 addLineLayer('departamentos', 'Departamentos de referencia', ATLAS_DATA.departamentos, { color:'#2B2B2B', weight:2.5, dashArray:'4,4', defaultOn:true });
 addLineLayer('rios', 'Ríos principales', ATLAS_DATA.rios, { color:'#2E6E8E', weight:1.3, defaultOn:true });
