@@ -56,36 +56,44 @@ document.querySelectorAll('#base-toggle button').forEach(function(btn){
 });
 
 // ---------- Popup helpers ----------
-var FIELD_LABELS = {
-  'Lengua':'Lengua', 'Familia Linguística':'Familia lingüística', 'Familia linguística':'Familia lingüística', 'Familia lingüística':'Familia lingüística',
-  'Parcela':'Territorio / TCO', 'Auto identificación':'Autoidentificación',
-  'Número de hablantes':'Número de hablantes', 'Número de hablantes ':'Número de hablantes',
-  'Grado de vitalidad':'Grado de vitalidad', 'Grado de vitalidad de la lengua':'Grado de vitalidad',
-  'Valoración':'Valoración'
-};
+var FIELD_ORDER = [
+  { key:'Lengua', label:'Lengua' },
+  { key:'Ubicación', label:'Ubicación', multiline:true },
+  { key:'Familia Linguística', label:'Familia lingüística' },
+  { key:'Familia linguística', label:'Familia lingüística' },
+  { key:'Familia lingüística', label:'Familia lingüística' },
+  { key:'Parcela', label:'Territorio / TCO' },
+  { key:'Auto identificación', label:'Autoidentificación' },
+  { key:'Número de hablantes', label:'Número de hablantes' },
+  { key:'Grado de vitalidad', label:'Grado de vitalidad' },
+  { key:'Grado de vitalidad de la lengua', label:'Grado de vitalidad' },
+  { key:'Valoración', label:'Valoración' },
+  { key:'Mayor información', label:null, link:true }
+];
 function buildPopup(name, props, extraNote){
   var html = '<div class="popup-title">'+escapeHtml(name)+'</div>';
   var seen = {};
-  Object.keys(FIELD_LABELS).forEach(function(key){
-    if(props[key] && props[key].trim() && !seen[FIELD_LABELS[key]]){
-      html += '<div class="popup-field"><b>'+FIELD_LABELS[key]+':</b> '+escapeHtml(props[key])+'</div>';
-      seen[FIELD_LABELS[key]] = true;
-    }
-  });
-  if(props['Ubicación'] && props['Ubicación'].trim()){
-    var lineas = props['Ubicación'].split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
-    html += '<div class="popup-field"><b>Ubicación:</b><br>'+lineas.map(escapeHtml).join('<br>')+'</div>';
-  }
-  if(props['Mayor información'] && props['Mayor información'].trim()){
-    var mi = props['Mayor información'];
-    var urlMatch = mi.match(/https?:\/\/\S+/);
-    if(urlMatch){
-      var etiqueta = mi.slice(0, urlMatch.index).replace(/[:\s]+$/,'').trim() || 'Informe';
-      html += '<div class="popup-field"><b>'+escapeHtml(etiqueta)+':</b> <a href="'+urlMatch[0]+'" target="_blank" rel="noopener">Ver documento</a></div>';
+  FIELD_ORDER.forEach(function(f){
+    var val = props[f.key];
+    if(!val || !val.trim()) return;
+    var seenKey = f.label || f.key;
+    if(seen[seenKey]) return;
+    if(f.multiline){
+      var lineas = val.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+      html += '<div class="popup-field"><b>'+f.label+':</b><br>'+lineas.map(escapeHtml).join('<br>')+'</div>';
+    } else if(f.link){
+      var urlMatch = val.match(/https?:\/\/\S+/);
+      if(urlMatch){
+        var etiqueta = val.slice(0, urlMatch.index).replace(/[:\s]+$/,'').trim() || 'Informe';
+        html += '<div class="popup-field"><b>'+escapeHtml(etiqueta)+':</b> <a href="'+urlMatch[0]+'" target="_blank" rel="noopener">Ver documento</a></div>';
+      } else {
+        html += '<div class="popup-field"><b>Mayor información:</b> '+escapeHtml(val)+'</div>';
+      }
     } else {
-      html += '<div class="popup-field"><b>Mayor información:</b> '+escapeHtml(mi)+'</div>';
+      html += '<div class="popup-field"><b>'+f.label+':</b> '+escapeHtml(val)+'</div>';
     }
-  }
+    seen[seenKey] = true;
+  });
   if(extraNote){ html += '<div class="popup-field" style="margin-top:6px;">'+extraNote+'</div>'; }
   return html;
 }
