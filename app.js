@@ -57,7 +57,7 @@ document.querySelectorAll('#base-toggle button').forEach(function(btn){
 
 // ---------- Popup helpers ----------
 var FIELD_LABELS = {
-  'Lengua':'Lengua', 'Familia linguística':'Familia lingüística', 'Familia lingüística':'Familia lingüística',
+  'Lengua':'Lengua', 'Familia Linguística':'Familia lingüística', 'Familia linguística':'Familia lingüística', 'Familia lingüística':'Familia lingüística',
   'Parcela':'Territorio / TCO', 'Auto identificación':'Autoidentificación',
   'Número de hablantes':'Número de hablantes', 'Número de hablantes ':'Número de hablantes',
   'Grado de vitalidad':'Grado de vitalidad', 'Grado de vitalidad de la lengua':'Grado de vitalidad',
@@ -72,6 +72,20 @@ function buildPopup(name, props, extraNote){
       seen[FIELD_LABELS[key]] = true;
     }
   });
+  if(props['Ubicación'] && props['Ubicación'].trim()){
+    var lineas = props['Ubicación'].split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+    html += '<div class="popup-field"><b>Ubicación:</b><br>'+lineas.map(escapeHtml).join('<br>')+'</div>';
+  }
+  if(props['Mayor información'] && props['Mayor información'].trim()){
+    var mi = props['Mayor información'];
+    var urlMatch = mi.match(/https?:\/\/\S+/);
+    if(urlMatch){
+      var etiqueta = mi.slice(0, urlMatch.index).replace(/[:\s]+$/,'').trim() || 'Informe';
+      html += '<div class="popup-field"><b>'+escapeHtml(etiqueta)+':</b> <a href="'+urlMatch[0]+'" target="_blank" rel="noopener">Ver documento</a></div>';
+    } else {
+      html += '<div class="popup-field"><b>Mayor información:</b> '+escapeHtml(mi)+'</div>';
+    }
+  }
   if(extraNote){ html += '<div class="popup-field" style="margin-top:6px;">'+extraNote+'</div>'; }
   return html;
 }
