@@ -179,7 +179,7 @@ function addPointLayer(key, label, items, opts){
     var marker = L.circleMarker([item.lat, item.lng], {
       radius: 6, color:'#ffffff', weight:1.5, fillColor:c, fillOpacity:0.95
     });
-        var fotoHtml = '<div style="aspect-ratio:4/3;background:#EFEAE0;border-radius:3px;overflow:hidden;margin-bottom:8px;"><img src="fotos/'+fotoSlug(item.name)+'.jpg" alt="Foto de '+escapeHtml(item.name)+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentNode.style.display=\'none\';"></div>';
+        var fotoHtml = '<div style="aspect-ratio:4/3;background:#EFEAE0;border-radius:3px;overflow:hidden;margin-bottom:8px;"><img src="fotos/'+fotoSlug(item.name)+'.jpg" alt="Foto de '+escapeHtml(item.name)+'" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" onerror="this.parentNode.style.display=\'none\';"></div>';
     marker.bindPopup(fotoHtml + buildPopup(item.name, item.props), { minWidth:260, maxWidth:300 });
     marker._atlasItem = item;
     marker._atlasDual = true;
