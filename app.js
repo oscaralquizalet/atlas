@@ -180,7 +180,7 @@ function addPointLayer(key, label, items, opts){
       radius: 6, color:'#ffffff', weight:1.5, fillColor:c, fillOpacity:0.95
     });
         var fotoHtml = '<div style="aspect-ratio:4/3;background:#EFEAE0;border-radius:3px;overflow:hidden;margin-bottom:8px;"><img src="fotos/'+fotoSlug(item.name)+'.jpg" alt="Foto de '+escapeHtml(item.name)+'" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" onerror="this.parentNode.style.display=\'none\';"></div>';
-    marker.bindPopup(fotoHtml + buildPopup(item.name, item.props), { minWidth:260, maxWidth:300 });
+    marker.bindPopup(function(){ return fotoHtml + buildPopup(item.name, item.props) + mapaLinkHtml(item.name); }, { minWidth:260, maxWidth:300 });
     marker._atlasItem = item;
     marker._atlasDual = true;
     marker.addTo(group);
@@ -708,6 +708,87 @@ function htmlBrToParagraphs(text){
   }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
 
   map.forEach(function(m){ observer.observe(m.section); });
+})();
+// Mapas parlantes: enlace en el popup + visor ampliado
+var MAPAS_PARLANTES = [
+  'eyiyoquibo','la-chacra','palmar-de-aguas-negras','puerto-yaminahua','san-jose',
+  'san-miguel-de-machineri','santa-elena-b','santa-rosa-de-maravilla','tacuaral-del-matto','tumupasa'
+];
+function mapaLinkHtml(nombre){
+  var slug = fotoSlug(nombre);
+  if(MAPAS_PARLANTES.indexOf(slug) === -1) return '';
+  return '<div class="popup-field"><b>Mapa parlante:</b> <a href="mapas/'+slug+'.jpg" target="_blank" rel="noopener" data-mapa="'+slug+'" data-nombre="'+escapeHtml(nombre)+'">Ver mapa</a></div>';
+}
+(function(){
+  var st = document.createElement('style');
+  st.textContent =
+    '#mapa-visor{position:fixed;top:0;right:0;bottom:0;left:0;z-index:10000;display:none;flex-direction:column;background:rgba(30,8,12,.92);}'+
+    '#mapa-visor.on{display:flex;}'+
+    '#mapa-visor .mv-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#fff;}'+
+    '#mapa-visor .mv-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}'+
+    '#mapa-visor .mv-bar a,#mapa-visor .mv-bar button{color:#fff;background:rgba(255,255,255,.16);border:0;border-radius:4px;padding:6px 10px;font-size:13px;cursor:pointer;text-decoration:none;}'+
+    '#mapa-visor .mv-x{font-size:20px !important;line-height:1;padding:3px 10px !important;}'+
+    '#mapa-visor .mv-stage{flex:1;min-height:0;display:flex;overflow:auto;padding:0 10px 14px;}'+
+    '#mapa-visor img{display:block;margin:auto;flex:none;max-width:100%;max-height:calc(100vh - 90px);background:#fff;border-radius:3px;cursor:zoom-in;}'+
+    '#mapa-visor.zoom img{max-width:none;max-height:none;cursor:zoom-out;}';
+  document.head.appendChild(st);
+
+  var visor, stage, imgEl, titleEl, openEl, zoomBtn;
+  function build(){
+    visor = document.createElement('div');
+    visor.id = 'mapa-visor';
+    visor.setAttribute('role','dialog');
+    visor.setAttribute('aria-modal','true');
+    visor.innerHTML =
+      '<div class="mv-bar"><div class="mv-title"></div>'+
+      '<button type="button" class="mv-zoom">Ampliar</button>'+
+      '<a class="mv-open" target="_blank" rel="noopener">Abrir imagen</a>'+
+      '<button type="button" class="mv-x" aria-label="Cerrar">&times;</button></div>'+
+      '<div class="mv-stage"><img alt=""></div>';
+    document.body.appendChild(visor);
+    stage = visor.querySelector('.mv-stage');
+    imgEl = visor.querySelector('img');
+    titleEl = visor.querySelector('.mv-title');
+    openEl = visor.querySelector('.mv-open');
+    zoomBtn = visor.querySelector('.mv-zoom');
+    visor.querySelector('.mv-x').addEventListener('click', closeVisor);
+    zoomBtn.addEventListener('click', toggleZoom);
+    imgEl.addEventListener('click', toggleZoom);
+    stage.addEventListener('click', function(e){ if(e.target === stage) closeVisor(); });
+  }
+  function toggleZoom(){
+    var z = visor.classList.toggle('zoom');
+    zoomBtn.textContent = z ? 'Ajustar' : 'Ampliar';
+  }
+  function openVisor(slug, nombre){
+    if(!visor) build();
+    visor.classList.remove('zoom');
+    zoomBtn.textContent = 'Ampliar';
+    titleEl.textContent = 'Mapa parlante — ' + nombre;
+    imgEl.alt = 'Mapa parlante de ' + nombre;
+    imgEl.removeAttribute('src');
+    imgEl.src = 'mapas/' + slug + '.jpg';
+    openEl.href = 'mapas/' + slug + '.jpg';
+    visor.classList.add('on');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeVisor(){
+    if(!visor) return;
+    visor.classList.remove('on');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && visor && visor.classList.contains('on')) closeVisor();
+  });
+  map.on('popupopen', function(e){
+    var root = e.popup.getElement ? e.popup.getElement() : e.popup._container;
+    var a = root && root.querySelector('a[data-mapa]');
+    if(!a) return;
+    a.addEventListener('click', function(ev){
+      ev.preventDefault();
+      openVisor(a.getAttribute('data-mapa'), a.getAttribute('data-nombre'));
+    });
+  });
 })();
 // IIALI
 (function(){
