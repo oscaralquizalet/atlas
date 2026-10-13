@@ -58,10 +58,10 @@ document.querySelectorAll('#base-toggle button').forEach(function(btn){
 // ---------- Popup helpers ----------
 var FIELD_ORDER = [
   { key:'Lengua', label:'Lengua' },
-  { key:'Ubicación', label:'Ubicación', multiline:true },
+  
   { key:'Familia Linguística', label:'Familia lingüística' },
   { key:'Familia linguística', label:'Familia lingüística' },
-  { key:'Familia lingüística', label:'Familia lingüística' },
+  { key:'Familia lingüística', label:'Familia lingüística' }, { key:'Ubicación', label:'Ubicación', multiline:true },
   { key:'Superficie', label:'Superficie' }, { key:'Superficie (ha)', label:'Superficie' }, { key:'Superficie (Ha)', label:'Superficie' }, { key:'Parcela', label:'Territorio / TCO' },
   { key:'Auto identificación', label:'Autoidentificación' },
   { key:'Número de hablantes', label:'Número de hablantes' },
