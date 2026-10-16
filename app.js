@@ -67,7 +67,7 @@ var FIELD_ORDER = [
   { key:'Número de hablantes', label:'Número de hablantes' },
   { key:'Grado de vitalidad', label:'Grado de vitalidad' },
   { key:'Grado de vitalidad de la lengua', label:'Grado de vitalidad' },
-  { key:'Valoración', label:'Valoración' },
+  
   { key:'Mayor información', label:null, link:true }
 ];
 function buildPopup(name, props, extraNote){
