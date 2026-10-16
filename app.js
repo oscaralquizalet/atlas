@@ -145,7 +145,7 @@ function addPolygonLayer(key, label, items, opts){
         return { color: stroke, weight: opts.weight || 1.2, fillColor: c, fillOpacity: opts.fillOpacity == null ? 0.45 : opts.fillOpacity };
       }
     });
-    layer.bindPopup(buildPopup(item.name, item.props));
+    layer.bindPopup(function(){ return buildPopup(item.name, item.props); });
     layer._atlasItem = item;
     layer._atlasDual = !!opts.dual;
     layer.addTo(group);
@@ -164,7 +164,7 @@ function addLineLayer(key, label, items, opts){
         return { color: opts.color || item.color || '#2D6A4F', weight: opts.weight || 2, dashArray: opts.dashArray || null, opacity: 0.85 };
       }
     });
-    layer.bindPopup(buildPopup(item.name, item.props));
+    layer.bindPopup(function(){ return buildPopup(item.name, item.props); });
     layer.addTo(group);
   });
   geoLayers[key] = group;
@@ -790,6 +790,52 @@ function mapaLinkHtml(nombre){
     });
   });
 })();
+// Informes por pueblo: se completan solo si el dato no trae "Mayor información"
+var INFORMES_PUEBLOS = {
+  'Araona': 'https://iiali.org/wp-content/uploads/2024/12/2Araona.pdf'
+  // 'Nombre del pueblo': 'https://iiali.org/wp-content/uploads/.../archivo.pdf',
+};
+ATLAS_DATA.pueblos.forEach(function(p){
+  var u = INFORMES_PUEBLOS[p.name];
+  if(u && !(p.props['Mayor información'] || '').trim()){
+    p.props['Mayor información'] = 'Informe: ' + u;
+  }
+});
+// Informes por pueblo (enlaces actualizados). Cada fila: [palabras del nombre, archivo en iiali.org]
+var INFORMES_BASE = 'https://iiali.org/wp-content/uploads/2024/12/';
+var INFORMES_PUEBLOS = [
+  [['araona'], '2Araona.pdf'],
+  [['baure','baures'], '3Baure.pdf'],
+  [['cavineno'], '4Cavineno.pdf'],
+  [['cayubaba'], '5Cayubaba.pdf'],
+  [['chacobo'], '6Chacobo.pdf'],
+  [['ejja','eja'], '7-Ese-Ejja_opt.pdf'],
+  [['itonama'], '8-Itonama.pdf'],
+  [['joaquiniano'], '9.Joaquiniano.pdf'],
+  [['canichana','kanichana'], '10kanichana.pdf'],
+  [['machineri'], '11Machineri.pdf'],
+  [['maropa'], '12Maropa.pdf'],
+  [['more'], '13More.pdf'],
+  [['moseten','mosetene'], '14-Moseten.pdf'],
+  [['movima'], '15Movima.pdf'],
+  [['ignaciano'], '16-MoxenoIgnaciano.pdf'],
+  [['trinitario'], '17Moxeno-trinitario.pdf'],
+  [['pacahuara'], '18Pacahuara.pdf'],
+  [['siriono'], '19Siriono.pdf'],
+  [['takana','tacana'], '20Takana.pdf'],
+  [['tsimane','chimane'], '21Tsimane_opt.pdf'],
+  [['yaminawa','yaminahua'], '22-Yaminawa_opt.pdf'],
+  [['yuqui','yuki'], '23Yuki.pdf'],
+  [['yurakare'], '24Yurakare_opt.pdf']
+];
+ATLAS_DATA.pueblos.forEach(function(p){
+  var palabras = fotoSlug(p.name).split('-');
+  INFORMES_PUEBLOS.some(function(fila){
+    var hit = fila[0].some(function(w){ return palabras.indexOf(w) !== -1; });
+    if(hit){ p.props['Mayor información'] = 'Informe: ' + INFORMES_BASE + fila[1]; }
+    return hit;
+  });
+});
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
