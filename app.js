@@ -64,7 +64,7 @@ var FIELD_ORDER = [
   { key:'Familia lingüística', label:'Familia lingüística' }, { key:'Ubicación', label:'Ubicación', multiline:true },
   { key:'Superficie', label:'Superficie' }, { key:'Superficie (ha)', label:'Superficie' }, { key:'Superficie (Ha)', label:'Superficie' },
   { key:'Auto identificación', label:'Autoidentificación' },
-  { key:'Número de hablantes', label:'Número de hablantes' },
+  { key:'Número de hablantes', label:'Número de hablantes' }, { key:'Número de hablantes ', label:'Número de hablantes' },
   { key:'Grado de vitalidad', label:'Grado de vitalidad' },
   { key:'Grado de vitalidad de la lengua', label:'Grado de vitalidad' },
   
