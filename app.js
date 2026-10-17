@@ -836,6 +836,47 @@ ATLAS_DATA.pueblos.forEach(function(p){
     return hit;
   });
 });
+// Datos 2024 por pueblo: autoidentificación y número de hablantes (reemplazan a los de 2012)
+var PUEBLOS_2024 = [
+  [['ejja','eja'], 1927, 1382],
+  [['tsimane','chimane'], 22343, 18909],
+  [['araona'], 147, 114],
+  [['yaminawa','yaminahua'], 228, 112],
+  [['yuqui','yuki'], 478, 266],
+  [['chacobo'], 1530, 1364],
+  [['moseten','mosetene'], 4099, 792],
+  [['ignaciano'], 9076, 286],
+  [['siriono'], 722, 69],
+  [['movima'], 10654, 173],
+  [['trinitario'], 14457, 1442],
+  [['takana','tacana'], 19350, 578],
+  [['yurakare'], 6480, 849],
+  [['baure','baures'], 1618, 10],
+  [['cavineno'], 5344, 973],
+  [['machineri'], 72, 12],
+  [['pacahuara'], 70, 30],
+  [['itonama'], 5612, 35],
+  [['maropa'], 'Reyesano: 106 personas ; Maropa: 2.797 personas', 26],
+  [['more'], 212, 10],
+  [['canichana','kanichana'], 865, 8],
+  [['cayubaba'], 1064, 5],
+  [['joaquiniano'], 1992, 7]
+];
+function txt2024(v){
+  var s = (typeof v === 'number') ? (String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' personas') : v;
+  return s + ' - Censo 2024';
+}
+ATLAS_DATA.pueblos.forEach(function(p){
+  var palabras = fotoSlug(p.name).split('-');
+  PUEBLOS_2024.some(function(fila){
+    var hit = fila[0].some(function(w){ return palabras.indexOf(w) !== -1; });
+    if(hit){
+      p.props['Auto identificación'] = txt2024(fila[1]);
+      p.props['Número de hablantes'] = p.props['Número de hablantes '] = txt2024(fila[2]);
+    }
+    return hit;
+  });
+});
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
