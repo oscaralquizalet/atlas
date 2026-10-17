@@ -264,7 +264,7 @@ layerDefs.forEach(function(def){
   var sub = document.createElement('div');
   sub.className = 'layer-sub';
   sub.style.display = 'none';
-  items.slice().sort(function(a,b){ return a.name.localeCompare(b.name); }).forEach(function(item){
+  items.slice().sort(function(a,b){ if(def.key === 'regiones'){ var ORD = ['amazonia','oriente boliviano','chaco','altiplano-valles']; var ia = ORD.indexOf(norm(a.name)), ib = ORD.indexOf(norm(b.name)); ia = ia < 0 ? 99 : ia; ib = ib < 0 ? 99 : ib; if(ia !== ib) return ia - ib; } return a.name.localeCompare(b.name); }).forEach(function(item){
     var li = document.createElement('div');
     li.className = 'layer-sub-item';
     li.textContent = item.name;
