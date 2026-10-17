@@ -1,5 +1,5 @@
 (function(){
-'use strict';
+'use strict'; ATLAS_DATA.pueblos = ATLAS_DATA.pueblos.filter(function(p){ return String(p.name).trim().toLowerCase() !== 'ninguna lengua'; });
 
 var GRADO_ORDER = [
   'no corre peligro','estable pero en peligro','vulnerable','entre vulnerable y en peligro',
