@@ -836,7 +836,24 @@ ATLAS_DATA.pueblos.forEach(function(p){
     return hit;
   });
 });
-
+// Regiones geoculturales: descripción de cada región (textos de My Maps, corregidos)
+var TEXTOS_REGIONES = [
+  ['amazonia', 'La Amazonía boliviana constituye el área geocultural más extendida y diversa de Bolivia. Alberga al más alto número de lenguas y Pueblos Indígenas del país (23). Se extiende hacia el noreste a territorios que forman parte del Brasil y hacia el noroeste a territorios que conforman la Amazonía peruana. Por el sur colinda con el Oriente boliviano y Trópico de Cochabamba, y por el oeste con el Norte del departamento de La Paz.'],
+  ['oriente', 'El área geocultural de Oriente boliviano se refiere a aquella región de planicies y humedales ubicada entre la Amazonía y el Chaco. Comprende sobre todo parte del departamento de Santa Cruz. En esta región viven los pueblos Ayoreo, Chiquitano y Guarayo y se hablan las lenguas ayoreo, besïro o chiquitano y guarayo. En su día en esta región se habló también el guarasugwe, y probablemente otras lenguas indígenas más. Estos Pueblos e idiomas no forman parte del Atlas digital.'],
+  ['chaco', 'El área geocultural del Chaco boliviano es la más austral; se sitúa entre el Oriente y la subregión Altiplano-Valles. Se vincula con la región del Gran Chaco que comprende otras subáreas geoculturales hoy parte de Brasil, Paraguay y Argentina. En el Chaco boliviano habitan los pueblos Guaraní, Tapieté y Weenhayek con sus correspondientes idiomas que llevan los mismos nombres. Estos Pueblos e idiomas no forman parte de este Atlas digital.'],
+  ['altiplano', 'El área geocultural Altiplano-Valles comprende los valles interandinos, las zonas de puna, las mesetas altiplánicas y también el pie de monte o yungas occidentales. Se extiende en parte de los departamentos de Cochabamba, La Paz y Tarija, y el área total de los departamentos de Oruro y Potosí. En este vasto territorio habitan sobre todo los pueblos Aymara, Quechua y también Leco, Kallawaya y Uru con sus respectivos idiomas. En su día en esta región se habló el pukina. Estos Pueblos e idiomas no forman parte de este Atlas digital.']
+];
+ATLAS_DATA.regiones.forEach(function(r){
+  var n = norm(r.name);
+  TEXTOS_REGIONES.some(function(fila){
+    var hit = n.indexOf(fila[0]) !== -1;
+    if(hit){ r.props['Atlas Digital'] = fila[1]; }
+    return hit;
+  });
+  if(n.indexOf('amazonia') !== -1){
+    r.props['Mayor información'] = 'Más información: https://iiali.org/wp-content/uploads/2024/12/1.Introduccion_opt.pdf';
+  }
+});
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
