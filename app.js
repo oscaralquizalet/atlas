@@ -892,7 +892,7 @@ ATLAS_DATA.regiones.forEach(function(r){
     return hit;
   });
   if(n.indexOf('amazonia') !== -1){
-    r.props['Mayor información'] = 'Más información: https://iiali.org/wp-content/uploads/2024/12/1.Introduccion_opt.pdf';
+    
   }
 });
 
