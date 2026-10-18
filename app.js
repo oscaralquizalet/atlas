@@ -68,7 +68,7 @@ var FIELD_ORDER = [
   { key:'Grado de vitalidad', label:'Grado de vitalidad' },
   { key:'Grado de vitalidad de la lengua', label:'Grado de vitalidad' },
   
-  { key:'Mayor información', label:null, link:true }
+  { key:'Atlas Digital', label:'Descripción', multiline:true }, { key:'Mayor información', label:null, link:true }
 ];
 function buildPopup(name, props, extraNote){
   var html = '<div class="popup-title">'+escapeHtml(name)+'</div>';
