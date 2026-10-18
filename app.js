@@ -910,6 +910,52 @@ ATLAS_DATA.subregiones.forEach(function(r){
     return hit;
   });
 });
+// Resalte al seleccionar un polígono: foco (atenúa el resto), resplandor dorado y pulso breve
+(function(){
+  var st = document.createElement('style');
+  st.textContent =
+    '.atlas-dim{fill-opacity:.10 !important;stroke-opacity:.35 !important;transition:fill-opacity .4s,stroke-opacity .4s;}'+
+    '.atlas-sel{stroke:#FFD54F !important;stroke-opacity:1 !important;fill-opacity:.7 !important;stroke-width:4px;filter:drop-shadow(0 0 8px rgba(255,196,50,.95));animation:atlasPulse 1.5s ease-out 1;}'+
+    '@keyframes atlasPulse{0%{stroke-width:14px;filter:drop-shadow(0 0 26px rgba(255,196,50,1));}100%{stroke-width:4px;filter:drop-shadow(0 0 8px rgba(255,196,50,.95));}}';
+  document.head.appendChild(st);
+
+  var seleccion = null;
+  function limpiar(){
+    if(!seleccion) return;
+    seleccion.def.group.eachLayer(function(gl){
+      gl.eachLayer(function(l){
+        var el = l.getElement && l.getElement();
+        if(el){ el.classList.remove('atlas-dim', 'atlas-sel'); }
+      });
+    });
+    seleccion = null;
+  }
+  map.on('popupopen', function(e){
+    limpiar();
+    var src = e.popup._source;
+    if(!src) return;
+    layerDefs.forEach(function(def){
+      if(def.type !== 'polygon') return;
+      def.group.eachLayer(function(gl){
+        if(gl.hasLayer && gl.hasLayer(src)){ seleccion = { def: def, gl: gl }; }
+      });
+    });
+    if(!seleccion) return;
+    seleccion.def.group.eachLayer(function(gl){
+      gl.eachLayer(function(l){
+        var el = l.getElement && l.getElement();
+        if(!el) return;
+        if(gl === seleccion.gl){
+          if(l.bringToFront){ l.bringToFront(); }
+          el.classList.add('atlas-sel');
+        } else {
+          el.classList.add('atlas-dim');
+        }
+      });
+    });
+  });
+  map.on('popupclose', limpiar);
+})();
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
