@@ -895,7 +895,21 @@ ATLAS_DATA.regiones.forEach(function(r){
     
   }
 });
-
+// Subregiones de la Amazonía: descripción de cada subregión (textos de My Maps)
+var TEXTOS_SUBREGIONES = [
+  ['norte amazonico', 'Esta subregión abarca el departamento de Pando y el norte del departamento de Beni. Al norte del departamento de Pando, los límites están definidos por los ríos Acre, Abuná y Chipamanu, como fronteras naturales con Brasil. Al este también colinda con Brasil, teniendo como límites naturales los ríos Madera y Mamoré. Al sur, el límite con las llanuras del departamento de Beni se establece a través del curso de los ríos Yata y Biata. Finalmente, al oeste limita con el departamento de La Paz a través del río Madre de Dios y también con Perú.'],
+  ['amazonia sur', 'Esta subregión comprende la mayor parte del departamento de Beni, el más lingüísticamente diverso de Bolivia. También abarca una pequeña área al norte del departamento de Santa Cruz. Al norte limita con el departamento de Pando y el área norte del departamento de Beni mediante el curso de los ríos Yata y Biata. Al este con Brasil, con frontera natural mediante el río Iténez, al sur con el Chaco boliviano y Oriente (Bosque seco chiquitano) del departamento de Santa Cruz. Por último, el límite al oeste corresponde con el departamento de La Paz definido por los ríos Beni y Quiquibey, y con el departamento de Cochabamba por medio de los ríos Ichilo, parte del Mamoré y la frontera política interdepartamental.'],
+  ['norte de la paz', 'Como su nombre lo indica, esta subregión se ubica en el departamento de La Paz, en la provincia Abel Iturralde. Limita al norte con el departamento de Pando, teniendo como frontera natural el río Madre de Dios y el límite político interdepartamental, al este con el departamento de Beni mediante los ríos Beni y Quiquibey y con el departamento de Cochabamba a través del río Cotacajes. Al sur con la faja sub-andina de bosques amazónicos de la región de Yungas y finalmente al oeste con Perú, facilitando el curso del río Heath como frontera natural.'],
+  ['tropico de cochabamba', 'Esta subregión comprende las provincias Chapare y Carrasco, al norte del departamento de Cochabamba. Su ubicación colinda al norte con el departamento de Beni a través del límite interdepartamental, al este con el departamento de Santa Cruz por medio de los ríos Ichilo y Mamoré, al sur con la faja sub-andina de bosques amazónicos de Cochabamba y al oeste con el departamento de La Paz mediante el río Cotacajes.']
+];
+ATLAS_DATA.subregiones.forEach(function(r){
+  var n = norm(r.name);
+  TEXTOS_SUBREGIONES.some(function(fila){
+    var hit = n.indexOf(fila[0]) !== -1;
+    if(hit){ r.props['Atlas Digital'] = fila[1]; }
+    return hit;
+  });
+});
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
