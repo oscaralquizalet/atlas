@@ -240,12 +240,12 @@ function zoomToItem(def, item){
     map.setView(center, 10);
   } else if(item.geometry){
     var b = L.geoJSON(item.geometry).getBounds();
-    map.fitBounds(b, { maxZoom: 9 });
+    map.flyToBounds(b, { maxZoom: 9, duration: 1.2 });
     center = b.getCenter();
   } else { return; }
   var found = null;
   def.group.eachLayer(function(l){ if(l._atlasItem === item){ found = l; } });
-  if(found){ found.openPopup(center); }
+  if(found){ setTimeout(function(){ found.openPopup(center); }, item.lat !== undefined ? 0 : 1300); }
   else { L.popup().setLatLng(center).setContent(buildPopup(item.name, item.props || {})).openOn(map); }
 }
 
