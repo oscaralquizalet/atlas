@@ -567,7 +567,7 @@ function htmlBrToParagraphs(text){
 // Dashboard resumen
 (function(){
   function gradoOf(item){
-    return norm(item.props['Grado de vitalidad'] || item.props['Grado de vitalidad de la lengua'] || '');
+    return gradoCanon(item.props['Grado de vitalidad'] || item.props['Grado de vitalidad de la lengua'] || '');
   }
   function colorOf(key){
     return (ATLAS_DATA.grado_color && ATLAS_DATA.grado_color[key]) || '#999999';
@@ -976,7 +976,7 @@ ATLAS_DATA.subregiones.forEach(function(r){
   document.head.appendChild(st);
 
   function gradoOf(item){
-    return norm(item.props['Grado de vitalidad'] || item.props['Grado de vitalidad de la lengua'] || '');
+    return gradoCanon(item.props['Grado de vitalidad'] || item.props['Grado de vitalidad de la lengua'] || '');
   }
   var porNivel = {};
   GRADO_ORDER.forEach(function(g){ porNivel[g] = []; });
@@ -1091,7 +1091,7 @@ function fondoNivel(g, colorBase){
   if(!sub || !sub.classList.contains('layer-sub')) return;
 
   function gradoOf(item){
-    return norm(item.props['Grado de vitalidad'] || item.props['Grado de vitalidad de la lengua'] || '');
+    return gradoCanon(item.props['Grado de vitalidad'] || item.props['Grado de vitalidad de la lengua'] || '');
   }
 
   // ---------- Lista lateral ----------
@@ -1216,6 +1216,21 @@ function fondoNivel(g, colorBase){
     b.addEventListener('click', function(){ pintarLista(); pintarMapa(); });
   });
 })();
+// Reconoce variantes de escritura del grado de vitalidad y devuelve la clave de GRADO_ORDER
+function gradoCanon(texto){
+  function canon(s){ return norm(s).replace(/[^a-z ]+/g, ' ').replace(/extinto/g, 'extinta').replace(/\s+/g, ' ').trim(); }
+  var t = canon(texto), exacta = '', prefijo = '';
+  if(!t) return '';
+  GRADO_ORDER.forEach(function(g){
+    var c = canon(g);
+    if(t === c){ exacta = g; }
+    else if(t.indexOf(c + ' ') === 0 && c.length > canon(prefijo).length){ prefijo = g; }
+  });
+  if(exacta) return exacta;
+  if(prefijo) return prefijo;
+  if(/^silenciada( o extinta)?$/.test(t)) return 'extinto';
+  return norm(texto);
+}
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
