@@ -969,10 +969,10 @@ ATLAS_DATA.subregiones.forEach(function(r){
     '.vit-head{display:flex;align-items:center;gap:8px;padding:7px 6px 5px;margin-top:4px;font-weight:600;font-size:13px;cursor:pointer;border-radius:4px;}'+
     '.vit-head:hover{background:rgba(0,0,0,.05);}'+
     '.vit-head.on{background:rgba(149,28,35,.12);}'+
-    '.vit-sw{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(0,0,0,.2);}'+
+    '.vit-sw{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(0,0,0,.2);}'+
     '.vit-n{margin-left:auto;font-weight:400;color:#8a8474;font-size:12px;}'+
     '.vit-item{display:flex;align-items:center;gap:8px;}'+
-    '.vit-dot{width:8px;height:8px;border-radius:50%;flex:none;}';
+    '.vit-dot{width:11px;height:11px;border-radius:50%;flex:none;}';
   document.head.appendChild(st);
 
   function gradoOf(item){
