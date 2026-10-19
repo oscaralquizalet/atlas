@@ -966,8 +966,8 @@ ATLAS_DATA.subregiones.forEach(function(r){
 
   var st = document.createElement('style');
   st.textContent =
-    '.vit-head{display:flex;align-items:center;gap:8px;padding:7px 6px 5px;margin-top:4px;font-weight:600;font-size:13px;cursor:pointer;border-radius:4px;}'+
-    '.vit-head:hover{background:rgba(0,0,0,.05);}'+
+    '.vit-head{position:relative;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 16px;margin-top:10px;font-weight:700;font-size:13px;cursor:pointer;border-radius:4px;background:#EFEAE0;border-bottom:1px solid rgba(0,0,0,.08);}.vit-head::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;border-radius:4px 0 0 4px;background:var(--vit-bar,#999);}'+
+    '.vit-head:hover{background:#E6DFD0;}'+
     '.vit-head.on{background:rgba(149,28,35,.12);}'+
     '.vit-sw{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(0,0,0,.2);}'+
     '.vit-n{margin-left:auto;font-weight:400;color:#8a8474;font-size:12px;}'+
@@ -1019,7 +1019,7 @@ ATLAS_DATA.subregiones.forEach(function(r){
 
   function agregarGrupo(g, etiqueta, grupo, color){
     var head = document.createElement('div');
-    head.className = 'vit-head';
+    head.className = 'vit-head'; head.style.setProperty('--vit-bar', color);
     head.title = 'Ver solo los pueblos de este nivel';
     head.innerHTML = '<span class="vit-sw" style="background:'+color+';"></span><span>'+escapeHtml(etiqueta)+'</span><span class="vit-n">'+grupo.length+'</span>';
     head.addEventListener('click', function(){ aislar(g, head); });
