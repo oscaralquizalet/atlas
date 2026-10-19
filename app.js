@@ -1042,17 +1042,45 @@ ATLAS_DATA.subregiones.forEach(function(r){
     var grupo = porNivel[g];
     if(!grupo.length) return;
     var color = (ATLAS_DATA.grado_color && ATLAS_DATA.grado_color[g]) || grupo[0].color_vitalidad || '#999999';
-    agregarGrupo(g, GRADO_LABELS[g], grupo, color);
+    agregarGrupo(g, GRADO_LABELS[g], grupo, fondoNivel(g, color));
   });
   if(otros.length){ agregarGrupo('__otros__', 'Sin clasificar', otros, '#999999'); }
 
   function pintar(){
     dots.forEach(function(d){
-      d.el.style.background = colorMode === 'vitalidad' ? (d.item.color_vitalidad || '#999999') : (d.item.color_pueblo || '#999999');
+      d.el.style.background = colorMode === 'vitalidad' ? fondoNivel(gradoOf(d.item), d.item.color_vitalidad || '#999999') : (d.item.color_pueblo || '#999999');
     });
   }
   pintar();
   document.querySelectorAll('#color-mode-toggle button').forEach(function(b){ b.addEventListener('click', pintar); });
+})();
+// Niveles intermedios de vitalidad en bicolor (solo en la barra lateral: lista de Pueblos y leyenda)
+var NIVELES_BICOLOR = {
+  'entre vulnerable y en peligro': ['vulnerable', 'en peligro'],
+  'entre en peligro y seriamente en peligro': ['en peligro', 'seriamente en peligro'],
+  'entre seriamente en peligro y situacion critica': ['seriamente en peligro', 'situacion critica'],
+  'entre situacion critica y extinta': ['situacion critica', 'extinto']
+};
+function fondoNivel(g, colorBase){
+  var par = NIVELES_BICOLOR[g];
+  var gc = ATLAS_DATA.grado_color || {};
+  if(!par || !gc[par[0]] || !gc[par[1]]) return colorBase;
+  return 'linear-gradient(135deg, ' + gc[par[0]] + ' 50%, ' + gc[par[1]] + ' 50%)';
+}
+(function(){
+  var box = document.getElementById('legend-box');
+  if(!box) return;
+  function aplicar(){
+    var porEtiqueta = {};
+    Object.keys(GRADO_LABELS).forEach(function(g){ porEtiqueta[GRADO_LABELS[g]] = g; });
+    box.querySelectorAll('.legend-row').forEach(function(row){
+      var g = porEtiqueta[row.textContent.trim()];
+      var dot = row.querySelector('.legend-dot');
+      if(g && dot && NIVELES_BICOLOR[g]){ dot.style.background = fondoNivel(g, dot.style.backgroundColor); }
+    });
+  }
+  aplicar();
+  new MutationObserver(aplicar).observe(box, { childList: true });
 })();
 // IIALI
 (function(){
