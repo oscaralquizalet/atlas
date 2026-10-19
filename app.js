@@ -1082,6 +1082,140 @@ function fondoNivel(g, colorBase){
   aplicar();
   new MutationObserver(aplicar).observe(box, { childList: true });
 })();
+// Comunidades focalizadas: lista agrupada por nivel de vitalidad + puntos bicolor en el mapa
+(function(){
+  var def = layerDefs.filter(function(d){ return d.key === 'comunidades'; })[0];
+  var chk = document.getElementById('chk-comunidades');
+  if(!def || !chk) return;
+  var sub = chk.parentNode.nextElementSibling;
+  if(!sub || !sub.classList.contains('layer-sub')) return;
+
+  function gradoOf(item){
+    return norm(item.props['Grado de vitalidad'] || item.props['Grado de vitalidad de la lengua'] || '');
+  }
+
+  // ---------- Lista lateral ----------
+  var porNivel = {};
+  GRADO_ORDER.forEach(function(g){ porNivel[g] = []; });
+  var otros = [];
+  ATLAS_DATA.comunidades.forEach(function(it){
+    var g = gradoOf(it);
+    if(porNivel[g]){ porNivel[g].push(it); } else { otros.push(it); }
+  });
+
+  sub.innerHTML = '';
+  var heads = [], dots = [], activo = null;
+
+  function limpiarFiltro(){
+    def.group.eachLayer(function(m){
+      var el = m.getElement && m.getElement();
+      if(el){ el.classList.remove('atlas-dim'); }
+    });
+    heads.forEach(function(h){ h.classList.remove('on'); });
+    activo = null;
+  }
+  function aislar(g, head){
+    if(activo === g){ limpiarFiltro(); return; }
+    limpiarFiltro();
+    if(!map.hasLayer(def.group)){ def.group.addTo(map); chk.checked = true; }
+    activo = g;
+    head.classList.add('on');
+    var match = [];
+    def.group.eachLayer(function(m){
+      var ok = m._atlasItem && gradoOf(m._atlasItem) === g;
+      if(ok){ match.push(m); return; }
+      var el = m.getElement && m.getElement();
+      if(el){ el.classList.add('atlas-dim'); }
+    });
+    if(match.length){ map.flyToBounds(L.featureGroup(match).getBounds(), { maxZoom: 9, duration: 1 }); }
+  }
+
+  function agregarGrupo(g, etiqueta, grupo, fondo){
+    var head = document.createElement('div');
+    head.className = 'vit-head'; head.style.setProperty('--vit-bar', fondo);
+    head.title = 'Ver solo las comunidades de este nivel';
+    head.innerHTML = '<span class="vit-sw" style="background:'+fondo+';"></span><span>'+escapeHtml(etiqueta)+'</span><span class="vit-n">'+grupo.length+'</span>';
+    head.addEventListener('click', function(){ aislar(g, head); });
+    heads.push(head);
+    sub.appendChild(head);
+    grupo.slice().sort(function(a,b){ return a.name.localeCompare(b.name); }).forEach(function(item){
+      var li = document.createElement('div');
+      li.className = 'layer-sub-item vit-item';
+      var dot = document.createElement('span');
+      dot.className = 'vit-dot';
+      li.appendChild(dot);
+      li.appendChild(document.createTextNode(item.name));
+      dots.push({ el: dot, item: item });
+      li.addEventListener('click', function(){ zoomToItem(def, item); });
+      sub.appendChild(li);
+    });
+  }
+
+  GRADO_ORDER.forEach(function(g){
+    var grupo = porNivel[g];
+    if(!grupo.length) return;
+    var color = (ATLAS_DATA.grado_color && ATLAS_DATA.grado_color[g]) || grupo[0].color_vitalidad || '#999999';
+    agregarGrupo(g, GRADO_LABELS[g], grupo, fondoNivel(g, color));
+  });
+  if(otros.length){ agregarGrupo('__otros__', 'Sin clasificar', otros, '#999999'); }
+
+  function pintarLista(){
+    dots.forEach(function(d){
+      d.el.style.background = colorMode === 'vitalidad' ? fondoNivel(gradoOf(d.item), d.item.color_vitalidad || '#999999') : (d.item.color_pueblo || '#999999');
+    });
+  }
+
+  // ---------- Puntos del mapa en bicolor ----------
+  var PARES = {
+    'entre vulnerable y en peligro': ['vulnerable', 'en peligro'],
+    'entre en peligro y seriamente en peligro': ['en peligro', 'seriamente en peligro'],
+    'entre seriamente en peligro y situacion critica': ['seriamente en peligro', 'situacion critica'],
+    'entre situacion critica y extinta': ['situacion critica', 'extinto']
+  };
+  var RADIO = 8;
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = map.getPane('overlayPane').querySelector('svg');
+  var defs = null, hechos = {};
+  if(svg){
+    defs = document.createElementNS(NS, 'defs');
+    svg.insertBefore(defs, svg.firstChild);
+  }
+  function gradienteId(g){
+    var par = PARES[g], gc = ATLAS_DATA.grado_color || {};
+    if(!defs || !par || !gc[par[0]] || !gc[par[1]]) return null;
+    var id = 'bic-' + g.replace(/[^a-z]+/g, '-');
+    if(!hechos[id]){
+      var lg = document.createElementNS(NS, 'linearGradient');
+      lg.setAttribute('id', id);
+      lg.setAttribute('x1', '0'); lg.setAttribute('y1', '0');
+      lg.setAttribute('x2', '1'); lg.setAttribute('y2', '1');
+      [[0, par[0]], [0.5, par[0]], [0.5, par[1]], [1, par[1]]].forEach(function(s){
+        var stop = document.createElementNS(NS, 'stop');
+        stop.setAttribute('offset', s[0]);
+        stop.setAttribute('stop-color', gc[s[1]]);
+        lg.appendChild(stop);
+      });
+      defs.appendChild(lg);
+      hechos[id] = true;
+    }
+    return 'url(#' + id + ')';
+  }
+  function pintarMapa(){
+    def.group.eachLayer(function(m){
+      var it = m._atlasItem;
+      if(!it) return;
+      var relleno = colorMode === 'vitalidad' ? gradienteId(gradoOf(it)) : null;
+      m.setStyle({ fillColor: relleno || styleColorOf(it, true) });
+      if(m.setRadius){ m.setRadius(RADIO); }
+    });
+  }
+
+  pintarLista();
+  pintarMapa();
+  document.querySelectorAll('#color-mode-toggle button').forEach(function(b){
+    b.addEventListener('click', function(){ pintarLista(); pintarMapa(); });
+  });
+})();
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
