@@ -956,6 +956,104 @@ ATLAS_DATA.subregiones.forEach(function(r){
   });
   map.on('popupclose', limpiar);
 })();
+// Lista de Pueblos agrupada por nivel de vitalidad (como My Maps y el documento metodológico)
+(function(){
+  var def = layerDefs.filter(function(d){ return d.key === 'pueblos'; })[0];
+  var chk = document.getElementById('chk-pueblos');
+  if(!def || !chk) return;
+  var sub = chk.parentNode.nextElementSibling;
+  if(!sub || !sub.classList.contains('layer-sub')) return;
+
+  var st = document.createElement('style');
+  st.textContent =
+    '.vit-head{display:flex;align-items:center;gap:8px;padding:7px 6px 5px;margin-top:4px;font-weight:600;font-size:13px;cursor:pointer;border-radius:4px;}'+
+    '.vit-head:hover{background:rgba(0,0,0,.05);}'+
+    '.vit-head.on{background:rgba(149,28,35,.12);}'+
+    '.vit-sw{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(0,0,0,.2);}'+
+    '.vit-n{margin-left:auto;font-weight:400;color:#8a8474;font-size:12px;}'+
+    '.vit-item{display:flex;align-items:center;gap:8px;}'+
+    '.vit-dot{width:8px;height:8px;border-radius:50%;flex:none;}';
+  document.head.appendChild(st);
+
+  function gradoOf(item){
+    return norm(item.props['Grado de vitalidad'] || item.props['Grado de vitalidad de la lengua'] || '');
+  }
+  var porNivel = {};
+  GRADO_ORDER.forEach(function(g){ porNivel[g] = []; });
+  var otros = [];
+  ATLAS_DATA.pueblos.forEach(function(it){
+    var g = gradoOf(it);
+    if(porNivel[g]){ porNivel[g].push(it); } else { otros.push(it); }
+  });
+
+  sub.innerHTML = '';
+  var heads = [], dots = [], activo = null;
+
+  function limpiarFiltro(){
+    def.group.eachLayer(function(gl){
+      gl.eachLayer(function(l){
+        var el = l.getElement && l.getElement();
+        if(el){ el.classList.remove('atlas-dim'); }
+      });
+    });
+    heads.forEach(function(h){ h.classList.remove('on'); });
+    activo = null;
+  }
+  function aislar(g, head){
+    if(activo === g){ limpiarFiltro(); return; }
+    limpiarFiltro();
+    if(!map.hasLayer(def.group)){ def.group.addTo(map); chk.checked = true; }
+    activo = g;
+    head.classList.add('on');
+    var match = [];
+    def.group.eachLayer(function(gl){
+      var ok = gl._atlasItem && gradoOf(gl._atlasItem) === g;
+      if(ok){ match.push(gl); return; }
+      gl.eachLayer(function(l){
+        var el = l.getElement && l.getElement();
+        if(el){ el.classList.add('atlas-dim'); }
+      });
+    });
+    if(match.length){ map.flyToBounds(L.featureGroup(match).getBounds(), { maxZoom: 8, duration: 1 }); }
+  }
+
+  function agregarGrupo(g, etiqueta, grupo, color){
+    var head = document.createElement('div');
+    head.className = 'vit-head';
+    head.title = 'Ver solo los pueblos de este nivel';
+    head.innerHTML = '<span class="vit-sw" style="background:'+color+';"></span><span>'+escapeHtml(etiqueta)+'</span><span class="vit-n">'+grupo.length+'</span>';
+    head.addEventListener('click', function(){ aislar(g, head); });
+    heads.push(head);
+    sub.appendChild(head);
+    grupo.slice().sort(function(a,b){ return a.name.localeCompare(b.name); }).forEach(function(item){
+      var li = document.createElement('div');
+      li.className = 'layer-sub-item vit-item';
+      var dot = document.createElement('span');
+      dot.className = 'vit-dot';
+      li.appendChild(dot);
+      li.appendChild(document.createTextNode(item.name));
+      dots.push({ el: dot, item: item });
+      li.addEventListener('click', function(){ zoomToItem(def, item); });
+      sub.appendChild(li);
+    });
+  }
+
+  GRADO_ORDER.forEach(function(g){
+    var grupo = porNivel[g];
+    if(!grupo.length) return;
+    var color = (ATLAS_DATA.grado_color && ATLAS_DATA.grado_color[g]) || grupo[0].color_vitalidad || '#999999';
+    agregarGrupo(g, GRADO_LABELS[g], grupo, color);
+  });
+  if(otros.length){ agregarGrupo('__otros__', 'Sin clasificar', otros, '#999999'); }
+
+  function pintar(){
+    dots.forEach(function(d){
+      d.el.style.background = colorMode === 'vitalidad' ? (d.item.color_vitalidad || '#999999') : (d.item.color_pueblo || '#999999');
+    });
+  }
+  pintar();
+  document.querySelectorAll('#color-mode-toggle button').forEach(function(b){ b.addEventListener('click', pintar); });
+})();
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
