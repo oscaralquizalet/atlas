@@ -971,7 +971,7 @@ ATLAS_DATA.subregiones.forEach(function(r){
     '.vit-head.on{background:rgba(149,28,35,.12);}'+
     '.vit-sw{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(0,0,0,.2);}'+
     '.vit-n{margin-left:auto;font-weight:400;color:#8a8474;font-size:12px;}'+
-    '.vit-item{display:flex;align-items:center;gap:8px;}'+
+    '.vit-item{display:flex;align-items:center;gap:8px;padding-left:26px;}'+
     '.vit-dot{width:11px;height:11px;border-radius:50%;flex:none;}';
   document.head.appendChild(st);
 
