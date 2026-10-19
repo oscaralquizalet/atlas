@@ -1062,7 +1062,7 @@ var NIVELES_BICOLOR = {
   'entre situacion critica y extinta': ['situacion critica', 'extinto']
 };
 function fondoNivel(g, colorBase){
-  var par = NIVELES_BICOLOR[g];
+  var par = ({'entre vulnerable y en peligro':['vulnerable','en peligro'],'entre en peligro y seriamente en peligro':['en peligro','seriamente en peligro'],'entre seriamente en peligro y situacion critica':['seriamente en peligro','situacion critica'],'entre situacion critica y extinta':['situacion critica','extinto']})[g];
   var gc = ATLAS_DATA.grado_color || {};
   if(!par || !gc[par[0]] || !gc[par[1]]) return colorBase;
   return 'linear-gradient(135deg, ' + gc[par[0]] + ' 50%, ' + gc[par[1]] + ' 50%)';
