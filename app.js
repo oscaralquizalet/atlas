@@ -769,7 +769,7 @@ function mapaLinkHtml(nombre){
     imgEl.removeAttribute('src');
     imgEl.src = 'mapas/' + slug + '.jpg';
     openEl.href = 'mapas/' + slug + '.jpg';
-    visor.classList.add('on');
+    (document.fullscreenElement || document.body).appendChild(visor); visor.classList.add('on');
     document.body.style.overflow = 'hidden';
   }
   function closeVisor(){
@@ -1231,6 +1231,115 @@ function gradoCanon(texto){
   if(/^silenciada( o extinta)?$/.test(t)) return 'extinto';
   return norm(texto);
 }
+// Botón de pantalla completa: amplía todo el geoportal (mapa + barra lateral de capas)
+(function(){
+  var chk = document.getElementById('chk-pueblos');
+  var mapEl = map.getContainer();
+  if(!chk) return;
+  var cont = mapEl;
+  while(cont && !cont.contains(chk)){ cont = cont.parentNode; }
+  if(!cont || cont === document.body || cont === document.documentElement) return;
+  var sideEl = chk;
+  while(sideEl && sideEl.parentNode !== cont){ sideEl = sideEl.parentNode; }
+  var mapPart = mapEl;
+  while(mapPart && mapPart.parentNode !== cont){ mapPart = mapPart.parentNode; }
+
+  var st = document.createElement('style');
+  st.textContent =
+    '.atlas-fs-on{position:fixed !important;top:0;left:0;right:0;bottom:0;width:100vw !important;height:100vh !important;max-width:none !important;max-height:none !important;margin:0 !important;padding:0 !important;z-index:9999;display:flex !important;flex-direction:row;background:#FBF8F1;}'+
+    '.atlas-fs-on > :not(.atlas-fs-side):not(.atlas-fs-map){display:none !important;}'+
+    '.atlas-fs-on .atlas-fs-side{flex:0 0 auto;height:100vh !important;max-height:100vh !important;overflow-y:auto;}'+
+    '.atlas-fs-on .atlas-fs-map{flex:1 1 auto;min-width:0;height:100vh !important;}'+
+    '@media (max-width:760px){'+
+      '.atlas-fs-on{flex-direction:column;}'+
+      '.atlas-fs-on .atlas-fs-side{width:100% !important;height:38vh !important;max-height:38vh !important;}'+
+      '.atlas-fs-on .atlas-fs-map{flex:1 1 0;height:auto !important;min-height:0;}'+
+    '}'+
+    '.atlas-fs-btn a{display:flex !important;align-items:center;justify-content:center;}';
+  document.head.appendChild(st);
+
+  var ICON_EXPAND = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+  var ICON_COMPRESS = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+
+  var btn = null, activo = false, pseudo = false, guardado = {};
+
+  function entrar(simulada){
+    if(activo) return;
+    activo = true; pseudo = !!simulada;
+    guardado.ancho = sideEl.style.width;
+    guardado.flex = sideEl.style.flex;
+    guardado.alto = mapEl.style.height;
+    var ancho = sideEl.getBoundingClientRect().width;
+    sideEl.style.width = ancho + 'px';
+    sideEl.style.flex = '0 0 auto';
+    cont.classList.add('atlas-fs-on');
+    sideEl.classList.add('atlas-fs-side');
+    mapPart.classList.add('atlas-fs-map');
+    mapEl.style.height = '100%';
+    if(pseudo){ document.body.style.overflow = 'hidden'; }
+    btn.innerHTML = ICON_COMPRESS;
+    btn.title = 'Salir de pantalla completa';
+    setTimeout(function(){ map.invalidateSize(); }, 150);
+  }
+  function salir(){
+    if(!activo) return;
+    activo = false;
+    cont.classList.remove('atlas-fs-on');
+    sideEl.classList.remove('atlas-fs-side');
+    mapPart.classList.remove('atlas-fs-map');
+    sideEl.style.width = guardado.ancho || '';
+    sideEl.style.flex = guardado.flex || '';
+    mapEl.style.height = guardado.alto || '';
+    document.body.style.overflow = '';
+    btn.innerHTML = ICON_EXPAND;
+    btn.title = 'Pantalla completa';
+    setTimeout(function(){ map.invalidateSize(); }, 150);
+  }
+  function alternar(){
+    if(!activo){
+      var pedir = cont.requestFullscreen || cont.webkitRequestFullscreen;
+      if(pedir){
+        try {
+          var r = pedir.call(cont);
+          if(r && r.catch){ r.catch(function(){ entrar(true); }); }
+        } catch(e){ entrar(true); }
+      } else {
+        entrar(true);
+      }
+    } else if(document.fullscreenElement || document.webkitFullscreenElement){
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    } else {
+      salir();
+    }
+  }
+  function alCambiar(){
+    var fs = document.fullscreenElement || document.webkitFullscreenElement;
+    if(fs === cont){ entrar(false); }
+    else if(activo && !pseudo){ salir(); }
+  }
+  document.addEventListener('fullscreenchange', alCambiar);
+  document.addEventListener('webkitfullscreenchange', alCambiar);
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && activo && pseudo){ salir(); }
+  });
+
+  var Control = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd: function(){
+      var bar = L.DomUtil.create('div', 'leaflet-bar atlas-fs-btn');
+      btn = L.DomUtil.create('a', '', bar);
+      btn.href = '#';
+      btn.setAttribute('role', 'button');
+      btn.setAttribute('aria-label', 'Pantalla completa');
+      btn.title = 'Pantalla completa';
+      btn.innerHTML = ICON_EXPAND;
+      L.DomEvent.disableClickPropagation(bar);
+      L.DomEvent.on(btn, 'click', function(e){ L.DomEvent.preventDefault(e); alternar(); });
+      return bar;
+    }
+  });
+  new Control().addTo(map);
+})();
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
