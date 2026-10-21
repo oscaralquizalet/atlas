@@ -17,7 +17,7 @@ var GRADO_LABELS = {
   'seriamente en peligro':'Seriamente en peligro',
   'entre seriamente en peligro y situacion critica':'Entre seriamente en peligro y situación crítica',
   'situacion critica':'Situación crítica',
-  'entre situacion critica y extinta':'Entre situación crítica y extinta / extinto',
+  'entre situacion critica y extinta':'Entre situación crítica y extinto',
   'extinto':'Extinto (silenciada)'
 };
 
