@@ -826,6 +826,219 @@ function htmlBrToParagraphs(text){
     dotsEl.appendChild(dot);
   }
 })();
+// Dashboard: página "Panorama de los pueblos" (cambio entre censos de los 23 pueblos, escala logarítmica)
+(function(){
+  var track = document.getElementById('dash-track');
+  if(!track || !track.children.length) return;
+
+  // [nombre, palabras clave, autoid. 2001, 2012, 2024, hablantes 2001, 2012, 2024]
+  var DATOS = [
+    ['Ese Ejja', ['ejja','eja'], 337, 1687, 1927, 518, 773, 1382],
+    ["Tsimane'", ['tsimane','chimane'], 4331, 16958, 22343, 6352, 10972, 18909],
+    ['Araona', ['araona'], 92, 228, 147, 111, 26, 114],
+    ['Yaminahua', ['yaminawa','yaminahua'], 45, 259, 228, 51, 155, 112],
+    ['Yuki', ['yuqui','yuki'], 112, 342, 478, 140, 143, 266],
+    ['Chácobo', ['chacobo'], 255, 1532, 1530, 380, 967, 1364],
+    ['Mosetén', ['moseten','mosetene'], 813, 3516, 4099, 924, 819, 792],
+    ['Moxeño Ignaciano', ['ignaciano'], 192, 1007, 9076, 1080, 1057, 286],
+    ['Sirionó', ['siriono'], 134, 782, 722, 189, 176, 69],
+    ['Movima', ['movima'], 6186, 18879, 10654, 1173, 503, 173],
+    ['Moxeño Trinitario', ['trinitario'], 2744, 7073, 14457, 3140, 2673, 1442],
+    ['Tacana', ['takana','tacana'], 3583, 18535, 19350, 1154, 843, 578],
+    ['Yurakaré', ['yurakare'], 1399, 6042, 6480, 1791, 1441, 849],
+    ['Baures', ['baure','baures'], 487, 3328, 1618, 67, 21, 10],
+    ['Cavineño', ['cavineno'], 852, 3884, 5344, 601, 779, 973],
+    ['Machineri', ['machineri'], 15, 52, 72, 13, 9, 12],
+    ['Pacahuara', ['pacahuara'], 32, 227, 70, 6, 7, 30],
+    ['Itonama', ['itonama'], 1493, 16158, 5612, 389, 29, 35],
+    ['Maropa', ['maropa'], 2741, 4757, 2903, 53, 117, 26],
+    ['Moré', ['more'], 44, 255, 212, 44, 8, 10],
+    ['Canichana', ['canichana','kanichana'], 213, 899, 865, 4, 7, 8],
+    ['Cayubaba', ['cayubaba'], 328, 2203, 1064, 23, 12, 5],
+    ['Joaquiniano', ['joaquiniano'], 171, 4223, 1992, 13, 0, 7]
+  ];
+  var C_UP = '#2D6A4F', C_DOWN = '#951C23', C_EQ = '#8a8474';
+  var PERIODOS = [['2001', '2012'], ['2012', '2024']];
+  var ind = 'h', per = 1;
+
+  var st = document.createElement('style');
+  st.textContent =
+    '.pan-sub{font-size:13px;color:#6b6657;margin:2px 0 10px;}'+
+    '.pan-ctrl{display:flex;flex-wrap:wrap;gap:10px 22px;margin:8px 0 12px;align-items:center;}'+
+    '.pan-ctrl label{font-size:12px;color:#6b6657;margin-right:8px;}'+
+    '.pan-seg{display:inline-flex;border:1px solid #C9C1AE;border-radius:6px;overflow:hidden;vertical-align:middle;}'+
+    '.pan-seg button{border:0;background:#fff;padding:7px 12px;font-size:13px;cursor:pointer;color:#2b2b2b;}'+
+    '.pan-seg button + button{border-left:1px solid #C9C1AE;}'+
+    '.pan-seg button.on{background:#951C23;color:#fff;}'+
+    '.pan-resumen{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 14px;}'+
+    '.pan-card{flex:1 1 180px;border:1px solid #E3DDCF;border-radius:8px;padding:8px 12px;background:#fff;}'+
+    '.pan-card b{display:block;font-size:18px;line-height:1.3;}'+
+    '.pan-card span{display:block;font-size:12px;color:#6b6657;margin-top:2px;}'+
+    '.pan-up{color:#2D6A4F;font-weight:700;}'+
+    '.pan-down{color:#951C23;font-weight:700;}'+
+    '.pan-nd{color:#8a8474;}'+
+    '.pan-leg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:#4a4638;margin:0 0 8px;align-items:center;}'+
+    '.pan-leg i{display:inline-block;width:11px;height:11px;border-radius:50%;box-sizing:border-box;border:2px solid #4a4638;vertical-align:middle;margin-right:4px;}'+
+    '.pan-leg i.fill{background:#4a4638;}'+
+    '.pan-eje,.pan-row{display:grid;grid-template-columns:170px 1fr 215px;align-items:center;gap:0 12px;}'+
+    '.pan-eje{font-size:11px;color:#6b6657;padding-bottom:4px;}'+
+    '.pan-ejetrack{position:relative;height:16px;}'+
+    '.pan-ejetrack span{position:absolute;top:0;white-space:nowrap;}'+
+    '.pan-row{padding:3px 0;border-bottom:1px solid #F0EBDD;}'+
+    '.pan-name{display:flex;align-items:center;gap:8px;font-size:13px;min-width:0;}'+
+    '.pan-name .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}'+
+    '.pan-sw{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(0,0,0,.2);}'+
+    '.pan-track{position:relative;height:18px;}'+
+    '.pan-line{position:absolute;top:8px;height:3px;border-radius:2px;}'+
+    '.pan-dot{position:absolute;top:3px;width:12px;height:12px;margin-left:-6px;border-radius:50%;box-sizing:border-box;border:2px solid;background:#fff;}'+
+    '.pan-val{font-size:12px;color:#4a4638;white-space:nowrap;}'+
+    '.pan-nota{font-size:12px;color:#6b6657;margin:10px 0 0;line-height:1.5;}'+
+    '@media (max-width:640px){'+
+      '.pan-row{grid-template-columns:1fr auto;}'+
+      '.pan-track{grid-column:1 / -1;order:3;margin-top:2px;}'+
+      '.pan-eje{grid-template-columns:1fr;}'+
+      '.pan-eje > :first-child,.pan-eje > :last-child{display:none;}'+
+    '}';
+  document.head.appendChild(st);
+
+  function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function cambio(a, b){
+    if(!a){ return '<span class="pan-nd">n/d</span>'; }
+    var p = Math.round((b - a) / a * 100);
+    if(p === 0){ return '0%'; }
+    return p > 0 ? '<span class="pan-up">▲ +' + fmt(p) + '%</span>' : '<span class="pan-down">▼ −' + fmt(Math.abs(p)) + '%</span>';
+  }
+  function gradoDe(claves){
+    var it = ATLAS_DATA.pueblos.filter(function(p){
+      var w = fotoSlug(p.name).split('-');
+      return claves.some(function(k){ return w.indexOf(k) !== -1; });
+    })[0];
+    if(!it) return null;
+    var g = gradoCanon(it.props['Grado de vitalidad'] || it.props['Grado de vitalidad de la lengua'] || '');
+    if(!GRADO_LABELS[g]) return null;
+    var base = (ATLAS_DATA.grado_color && ATLAS_DATA.grado_color[g]) || it.color_vitalidad || '#999999';
+    return { etiqueta: GRADO_LABELS[g], fondo: fondoNivel(g, base) };
+  }
+
+  var slide = document.createElement('div');
+  slide.className = track.children[0].className;
+  slide.innerHTML =
+    '<h3>Panorama de los 23 pueblos: cambio entre censos</h3>' +
+    '<p class="pan-sub">Cada fila muestra el cambio de un pueblo entre dos censos. La escala es logarítmica: la misma distancia equivale al mismo cambio porcentual, sin importar el tamaño del pueblo.</p>' +
+    '<div class="pan-ctrl">' +
+      '<div><label>Indicador</label><span class="pan-seg" data-g="ind"><button type="button" data-v="h" class="on">Número de hablantes</button><button type="button" data-v="a">Autoidentificación</button></span></div>' +
+      '<div><label>Periodo</label><span class="pan-seg" data-g="per"><button type="button" data-v="1" class="on">2012 → 2024</button><button type="button" data-v="0">2001 → 2012</button></span></div>' +
+    '</div>' +
+    '<div class="pan-resumen"></div>' +
+    '<div class="pan-leg"><span><i></i>Censo inicial</span><span><i class="fill"></i>Censo final</span><span><b class="pan-down">Rojo</b>: disminuye</span><span><b class="pan-up">Verde</b>: aumenta</span></div>' +
+    '<div class="pan-eje"><div>Escala logarítmica</div><div class="pan-ejetrack"></div><div></div></div>' +
+    '<div class="pan-filas"></div>' +
+    '<p class="pan-nota"></p>';
+  track.appendChild(slide);
+
+  function $(q){ return slide.querySelector(q); }
+
+  function render(){
+    var ia = ind === 'h' ? 5 : 2;
+    var i0 = ia + per, i1 = ia + per + 1;
+    var rows = DATOS.map(function(d){
+      var a = d[i0], b = d[i1];
+      return { d: d, a: a, b: b, p: a ? (b - a) / a : null };
+    });
+    rows.sort(function(x, y){
+      if(x.p === null && y.p === null){ return x.d[0].localeCompare(y.d[0]); }
+      if(x.p === null){ return 1; }
+      if(y.p === null){ return -1; }
+      return x.p - y.p;
+    });
+
+    // Escala logarítmica
+    var positivos = [];
+    rows.forEach(function(r){ if(r.a > 0){ positivos.push(r.a); } if(r.b > 0){ positivos.push(r.b); } });
+    var lo = Math.floor(Math.log(Math.min.apply(null, positivos)) / Math.LN10);
+    var hi = Math.ceil(Math.log(Math.max.apply(null, positivos)) / Math.LN10);
+    if(hi <= lo){ hi = lo + 1; }
+    function px(v){
+      var x = (Math.log(Math.max(v, 1)) / Math.LN10 - lo) / (hi - lo) * 100;
+      return Math.max(0, Math.min(100, x));
+    }
+    var ticks = '', grid = [];
+    for(var e = lo; e <= hi; e++){
+      var x = (e - lo) / (hi - lo) * 100;
+      ticks += '<span style="left:' + x + '%;transform:' + (x < 5 ? 'none' : (x > 95 ? 'translateX(-100%)' : 'translateX(-50%)')) + ';">' + fmt(Math.pow(10, e)) + '</span>';
+      grid.push('linear-gradient(#E3DDCF,#E3DDCF) ' + x + '% 0/1px 100% no-repeat');
+    }
+    $('.pan-ejetrack').innerHTML = ticks;
+    var fondoGrid = grid.join(',');
+
+    // Filas
+    var h = '';
+    rows.forEach(function(r){
+      var col = r.b > r.a ? C_UP : (r.b < r.a ? C_DOWN : C_EQ);
+      var x0 = px(r.a), x1 = px(r.b), g = gradoDe(r.d[1]);
+      h += '<div class="pan-row" title="' + escapeHtml(r.d[0] + ': ' + fmt(r.a) + ' → ' + fmt(r.b)) + '">' +
+        '<div class="pan-name">' + (g ? '<span class="pan-sw" style="background:' + g.fondo + ';" title="' + escapeHtml(g.etiqueta) + '"></span>' : '') + '<span class="nm">' + escapeHtml(r.d[0]) + '</span></div>' +
+        '<div class="pan-track" style="background:' + fondoGrid + ';">' +
+          '<span class="pan-line" style="left:' + Math.min(x0, x1) + '%;width:' + Math.abs(x1 - x0) + '%;background:' + col + ';"></span>' +
+          '<span class="pan-dot" style="left:' + x0 + '%;border-color:' + col + ';"></span>' +
+          '<span class="pan-dot" style="left:' + x1 + '%;border-color:' + col + ';background:' + col + ';"></span>' +
+        '</div>' +
+        '<div class="pan-val">' + fmt(r.a) + ' → ' + fmt(r.b) + ' &nbsp;' + cambio(r.a, r.b) + '</div>' +
+      '</div>';
+    });
+    $('.pan-filas').innerHTML = h;
+
+    // Resumen
+    var bajan = 0, suben = 0, sinBase = 0, sa = 0, sb = 0, mx = null;
+    rows.forEach(function(r){
+      if(!r.a){ sinBase++; } else if(r.b < r.a){ bajan++; } else if(r.b > r.a){ suben++; }
+      sa += r.a; sb += r.b;
+      if(!mx || r.b > mx.b){ mx = r; }
+    });
+    var que = ind === 'h' ? 'hablantes' : 'personas autoidentificadas';
+    var etq = PERIODOS[per][0] + ' → ' + PERIODOS[per][1];
+    var cards =
+      '<div class="pan-card"><b class="pan-down">▼ ' + bajan + '</b><span>pueblos con menos ' + que + ' (' + etq + ')</span></div>' +
+      '<div class="pan-card"><b class="pan-up">▲ ' + suben + '</b><span>pueblos con más ' + que + '</span></div>';
+    if(sinBase){ cards += '<div class="pan-card"><b class="pan-nd">n/d ' + sinBase + '</b><span>sin cifra base (0 en el censo inicial)</span></div>'; }
+    cards += '<div class="pan-card"><b>' + fmt(sa) + ' → ' + fmt(sb) + ' ' + cambio(sa, sb) + '</b><span>Suma de los ' + rows.length + ' pueblos</span>' +
+      '<span>Sin ' + escapeHtml(mx.d[0]) + ': ' + fmt(sa - mx.a) + ' → ' + fmt(sb - mx.b) + ' ' + cambio(sa - mx.a, sb - mx.b) + '</span></div>';
+    $('.pan-resumen').innerHTML = cards;
+
+    $('.pan-nota').innerHTML =
+      'Orden: de mayor pérdida a mayor aumento relativo. En pueblos con pocas personas, un cambio pequeño modifica mucho el porcentaje; conviene leer también las cifras. ' +
+      'Las variaciones pueden reflejar diferencias en cómo cada censo preguntó por la identificación y la lengua, por lo que se recomienda interpretarlas con cautela.' +
+      (ind === 'a' ? ' En Maropa, la autoidentificación de 2012 y 2024 suma las cifras de Reyesano y Maropa.' : '');
+    window.dispatchEvent(new Event('resize'));
+  }
+
+  slide.addEventListener('click', function(ev){
+    var b = ev.target.closest ? ev.target.closest('.pan-seg button') : null;
+    if(!b) return;
+    var grupo = b.parentNode;
+    Array.prototype.forEach.call(grupo.children, function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    if(grupo.getAttribute('data-g') === 'ind'){ ind = b.getAttribute('data-v'); }
+    else { per = parseInt(b.getAttribute('data-v'), 10); }
+    render();
+  });
+  render();
+
+  // Si el carrusel ya se inició, agrega el punto de la nueva página
+  var dotsEl = document.getElementById('dash-dots');
+  var nextBtn = document.getElementById('dash-next');
+  if(dotsEl && nextBtn && dotsEl.children.length && dotsEl.children.length < track.children.length){
+    var dot = document.createElement('button');
+    dot.addEventListener('click', function(){
+      var dots = Array.prototype.slice.call(dotsEl.children);
+      var cur = 0;
+      dots.forEach(function(x, i){ if(x.className === 'on'){ cur = i; } });
+      var pasos = (dots.indexOf(dot) - cur + dots.length) % dots.length;
+      for(var k = 0; k < pasos; k++){ nextBtn.click(); }
+    });
+    dotsEl.appendChild(dot);
+  }
+})();
 // Carrusel del dashboard
 (function(){
   var track = document.getElementById('dash-track');
