@@ -653,6 +653,179 @@ function htmlBrToParagraphs(text){
   buildTable('table-pueblos', ATLAS_DATA.pueblos);
   buildTable('table-comunidades', ATLAS_DATA.comunidades);
 })();
+// Dashboard: página "Evolución por pueblo" (histograma de autoidentificación y número de hablantes, censos 2001, 2012 y 2024)
+(function(){
+  var track = document.getElementById('dash-track');
+  if(!track || !track.children.length) return;
+
+  // [nombre, palabras clave, autoid. 2001, 2012, 2024, hablantes 2001, 2012, 2024, nota opcional]
+  var DATOS = [
+    ['Ese Ejja', ['ejja','eja'], 337, 1687, 1927, 518, 773, 1382],
+    ["Tsimane'", ['tsimane','chimane'], 4331, 16958, 22343, 6352, 10972, 18909],
+    ['Araona', ['araona'], 92, 228, 147, 111, 26, 114],
+    ['Yaminahua', ['yaminawa','yaminahua'], 45, 259, 228, 51, 155, 112],
+    ['Yuki', ['yuqui','yuki'], 112, 342, 478, 140, 143, 266],
+    ['Chácobo', ['chacobo'], 255, 1532, 1530, 380, 967, 1364],
+    ['Mosetén', ['moseten','mosetene'], 813, 3516, 4099, 924, 819, 792],
+    ['Moxeño Ignaciano', ['ignaciano'], 192, 1007, 9076, 1080, 1057, 286],
+    ['Sirionó', ['siriono'], 134, 782, 722, 189, 176, 69],
+    ['Movima', ['movima'], 6186, 18879, 10654, 1173, 503, 173],
+    ['Moxeño Trinitario', ['trinitario'], 2744, 7073, 14457, 3140, 2673, 1442],
+    ['Tacana', ['takana','tacana'], 3583, 18535, 19350, 1154, 843, 578],
+    ['Yurakaré', ['yurakare'], 1399, 6042, 6480, 1791, 1441, 849],
+    ['Baures', ['baure','baures'], 487, 3328, 1618, 67, 21, 10],
+    ['Cavineño', ['cavineno'], 852, 3884, 5344, 601, 779, 973],
+    ['Machineri', ['machineri'], 15, 52, 72, 13, 9, 12],
+    ['Pacahuara', ['pacahuara'], 32, 227, 70, 6, 7, 30],
+    ['Itonama', ['itonama'], 1493, 16158, 5612, 389, 29, 35],
+    ['Maropa', ['maropa'], 2741, 4757, 2903, 53, 117, 26, 'En Maropa, la autoidentificación de 2012 y 2024 suma las cifras de Reyesano y Maropa.'],
+    ['Moré', ['more'], 44, 255, 212, 44, 8, 10],
+    ['Canichana', ['canichana','kanichana'], 213, 899, 865, 4, 7, 8],
+    ['Cayubaba', ['cayubaba'], 328, 2203, 1064, 23, 12, 5],
+    ['Joaquiniano', ['joaquiniano'], 171, 4223, 1992, 13, 0, 7]
+  ];
+  var ANIOS = [2001, 2012, 2024];
+  var C_AUTO = '#2D6A4F', C_HABL = '#B08926';
+
+  var st = document.createElement('style');
+  st.textContent =
+    '.evo-sub{font-size:13px;color:#6b6657;margin:2px 0 10px;}'+
+    '.evo-ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 14px;}'+
+    '.evo-btn{border:1px solid #C9C1AE;background:#fff;color:#2b2b2b;border-radius:6px;padding:7px 12px;font-size:13px;cursor:pointer;}'+
+    '.evo-btn:hover{background:#EFEAE0;}'+
+    '.evo-select{flex:1 1 180px;min-width:0;padding:7px 10px;border:1px solid #C9C1AE;border-radius:6px;font-size:14px;background:#fff;}'+
+    '.evo-cnt{font-size:12px;color:#8a8474;margin-left:auto;}'+
+    '.evo-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:4px 0 6px;}'+
+    '.evo-name{font-size:22px;font-weight:700;color:#951C23;}'+
+    '.evo-grado{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#4a4638;}'+
+    '.evo-sw{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none;margin-right:6px;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(0,0,0,.2);}'+
+    '.evo-grado .evo-sw{margin-right:0;}'+
+    '.evo-leg{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;margin:4px 0 2px;}'+
+    '.evo-leg span{display:inline-flex;align-items:center;gap:6px;}'+
+    '.evo-leg i{display:inline-block;width:14px;height:14px;border-radius:3px;}'+
+    '.evo-tabla{border-collapse:collapse;margin:12px 0 4px;font-size:13px;width:100%;max-width:560px;}'+
+    '.evo-tabla th,.evo-tabla td{padding:6px 10px;border-bottom:1px solid #E3DDCF;text-align:left;}'+
+    '.evo-tabla th{font-weight:600;color:#6b6657;}'+
+    '.evo-up{color:#2D6A4F;font-weight:700;}'+
+    '.evo-down{color:#951C23;font-weight:700;}'+
+    '.evo-nd{color:#8a8474;}'+
+    '.evo-nota{font-size:12px;color:#6b6657;margin:8px 0 0;}';
+  document.head.appendChild(st);
+
+  function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function paso(max){
+    var exp = Math.pow(10, Math.floor(Math.log(max) / Math.LN10));
+    var f = max / exp;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * exp;
+  }
+  function pct(a, b){
+    if(!a){ return '<span class="evo-nd">n/d</span>'; }
+    var p = Math.round((b - a) / a * 100);
+    if(p === 0){ return '0%'; }
+    return p > 0 ? '<span class="evo-up">▲ +' + fmt(p) + '%</span>' : '<span class="evo-down">▼ −' + fmt(Math.abs(p)) + '%</span>';
+  }
+  function grafico(d){
+    var auto = [d[2], d[3], d[4]], habl = [d[5], d[6], d[7]];
+    var maxV = Math.max.apply(null, auto.concat(habl).concat([1]));
+    var stp = Math.max(1, paso(maxV / 4)), top = stp * Math.ceil(maxV / stp);
+    var W = 720, H = 380, L = 64, R = 16, T = 30, B = 62;
+    var pw = W - L - R, ph = H - T - B, gw = pw / 3, bw = 66, gap = 10;
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Autoidentificación y número de hablantes en los censos 2001, 2012 y 2024" style="width:100%;height:auto;display:block;font-family:inherit;">';
+    for(var v = 0; v <= top + 0.0001; v += stp){
+      var y = T + ph - (v / top) * ph;
+      s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '" stroke="' + (v === 0 ? '#8a8474' : '#E3DDCF') + '" stroke-width="' + (v === 0 ? 1.4 : 1) + '"/>';
+      s += '<text x="' + (L - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="12" fill="#6b6657">' + fmt(Math.round(v)) + '</text>';
+    }
+    ANIOS.forEach(function(a, i){
+      var gx = L + i * gw + (gw - (2 * bw + gap)) / 2;
+      [[auto[i], C_AUTO, 0], [habl[i], C_HABL, bw + gap]].forEach(function(b){
+        var h = (b[0] / top) * ph, x = gx + b[2], yb = T + ph - h;
+        s += '<rect x="' + x + '" y="' + yb + '" width="' + bw + '" height="' + h + '" rx="3" fill="' + b[1] + '"/>';
+        s += '<text x="' + (x + bw / 2) + '" y="' + (yb - 6) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#2b2b2b">' + fmt(b[0]) + '</text>';
+      });
+      s += '<text x="' + (gx + bw + gap / 2) + '" y="' + (T + ph + 24) + '" text-anchor="middle" font-size="14" font-weight="700" fill="#2b2b2b">Censo ' + a + '</text>';
+    });
+    return s + '</svg>';
+  }
+  function tabla(d){
+    function fila(color, nombre, v){
+      return '<tr><td><span class="evo-sw" style="background:' + color + ';"></span>' + nombre + '</td><td>' + pct(v[0], v[1]) + '</td><td>' + pct(v[1], v[2]) + '</td></tr>';
+    }
+    return '<table class="evo-tabla"><thead><tr><th>Variación entre censos</th><th>2001 → 2012</th><th>2012 → 2024</th></tr></thead><tbody>' +
+      fila(C_AUTO, 'Autoidentificación', [d[2], d[3], d[4]]) +
+      fila(C_HABL, 'Número de hablantes', [d[5], d[6], d[7]]) + '</tbody></table>';
+  }
+  function gradoDe(claves){
+    var it = ATLAS_DATA.pueblos.filter(function(p){
+      var w = fotoSlug(p.name).split('-');
+      return claves.some(function(k){ return w.indexOf(k) !== -1; });
+    })[0];
+    if(!it) return null;
+    var g = gradoCanon(it.props['Grado de vitalidad'] || it.props['Grado de vitalidad de la lengua'] || '');
+    if(!GRADO_LABELS[g]) return null;
+    var base = (ATLAS_DATA.grado_color && ATLAS_DATA.grado_color[g]) || it.color_vitalidad || '#999999';
+    return { etiqueta: GRADO_LABELS[g], fondo: fondoNivel(g, base) };
+  }
+
+  var slide = document.createElement('div');
+  slide.className = track.children[0].className;
+  slide.innerHTML =
+    '<h3>Evolución por pueblo indígena (Censos 2001, 2012 y 2024)</h3>' +
+    '<p class="evo-sub">Elige un pueblo con la lista o con los botones. Cada grupo de barras compara la autoidentificación y el número de hablantes en un censo.</p>' +
+    '<div class="evo-ctrl">' +
+      '<button type="button" class="evo-btn evo-prev" title="Pueblo anterior">◂ Anterior</button>' +
+      '<select class="evo-select" aria-label="Elegir pueblo indígena"></select>' +
+      '<button type="button" class="evo-btn evo-next" title="Pueblo siguiente">Siguiente ▸</button>' +
+      '<span class="evo-cnt"></span>' +
+    '</div>' +
+    '<div class="evo-head"><span class="evo-name"></span><span class="evo-grado"></span></div>' +
+    '<div class="evo-leg"><span><i style="background:' + C_AUTO + ';"></i>Autoidentificación</span><span><i style="background:' + C_HABL + ';"></i>Número de hablantes</span></div>' +
+    '<div class="evo-chart"></div>' +
+    '<div class="evo-var"></div>' +
+    '<p class="evo-nota"></p>';
+  track.appendChild(slide);
+
+  function $(q){ return slide.querySelector(q); }
+  var idx = 0, sel = $('.evo-select');
+  DATOS.forEach(function(d, i){
+    var o = document.createElement('option');
+    o.value = i;
+    o.textContent = (i + 1) + '. ' + d[0];
+    sel.appendChild(o);
+  });
+  function render(i){
+    idx = (i + DATOS.length) % DATOS.length;
+    var d = DATOS[idx];
+    sel.value = idx;
+    $('.evo-cnt').textContent = (idx + 1) + ' de ' + DATOS.length;
+    $('.evo-name').textContent = d[0];
+    var g = gradoDe(d[1]);
+    $('.evo-grado').innerHTML = g ? '<span class="evo-sw" style="background:' + g.fondo + ';"></span>' + escapeHtml(g.etiqueta) : '';
+    $('.evo-chart').innerHTML = grafico(d);
+    $('.evo-var').innerHTML = tabla(d);
+    $('.evo-nota').textContent = (d[8] ? d[8] + ' ' : '') + 'Cifras de autoidentificación y número de hablantes por censo.';
+    window.dispatchEvent(new Event('resize'));
+  }
+  $('.evo-prev').addEventListener('click', function(){ render(idx - 1); });
+  $('.evo-next').addEventListener('click', function(){ render(idx + 1); });
+  sel.addEventListener('change', function(){ render(parseInt(sel.value, 10)); });
+  render(0);
+
+  // Si el carrusel ya se inició, agrega el punto de la nueva página
+  var dotsEl = document.getElementById('dash-dots');
+  var nextBtn = document.getElementById('dash-next');
+  if(dotsEl && nextBtn && dotsEl.children.length && dotsEl.children.length < track.children.length){
+    var dot = document.createElement('button');
+    dot.addEventListener('click', function(){
+      var dots = Array.prototype.slice.call(dotsEl.children);
+      var cur = 0;
+      dots.forEach(function(x, i){ if(x.className === 'on'){ cur = i; } });
+      var pasos = (dots.indexOf(dot) - cur + dots.length) % dots.length;
+      for(var k = 0; k < pasos; k++){ nextBtn.click(); }
+    });
+    dotsEl.appendChild(dot);
+  }
+})();
 // Carrusel del dashboard
 (function(){
   var track = document.getElementById('dash-track');
