@@ -1726,6 +1726,132 @@ function gradoCanon(texto){
   });
   new Control().addTo(map);
 })();
+// Herramienta "Mi ubicación" (GPS): punto de la persona que navega + círculo de precisión
+(function(){
+  if(!navigator.geolocation) return;
+
+  var st = document.createElement('style');
+  st.textContent =
+    '.atlas-geo-btn a{display:flex !important;align-items:center;justify-content:center;}'+
+    '.atlas-geo-btn a.on{background:#951C23;color:#fff;}'+
+    '.atlas-geo-btn a.busy svg{animation:atlasGeoSpin 1.1s linear infinite;}'+
+    '@keyframes atlasGeoSpin{to{transform:rotate(360deg);}}'+
+    '.atlas-geo-icon{background:none;border:0;}'+
+    '.atlas-geo-dot{position:relative;width:22px;height:22px;}'+
+    '.atlas-geo-core{position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#1A73E8;border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);box-sizing:border-box;}'+
+    '.atlas-geo-pulse{position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:rgba(26,115,232,.45);animation:atlasGeoPulse 2s ease-out infinite;}'+
+    '@keyframes atlasGeoPulse{0%{transform:scale(1);opacity:.8;}100%{transform:scale(3.2);opacity:0;}}'+
+    '.atlas-geo-msg{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:1000;max-width:min(88%,420px);background:rgba(43,43,43,.92);color:#fff;font-size:13px;line-height:1.4;padding:9px 14px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);display:none;text-align:center;}'+
+    '.atlas-geo-msg.show{display:block;}';
+  document.head.appendChild(st);
+
+  var ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M12 2v3.5M12 18.5V22M2 12h3.5M18.5 12H22"/></svg>';
+  var btn = null, marker = null, circle = null, ultimo = null;
+  var estado = 'off', primera = true, msgEl = null, msgTimer = null;
+
+  function aviso(texto, ms){
+    if(!msgEl){ msgEl = L.DomUtil.create('div', 'atlas-geo-msg', map.getContainer()); }
+    msgEl.textContent = texto;
+    msgEl.classList.add('show');
+    clearTimeout(msgTimer);
+    if(ms){ msgTimer = setTimeout(function(){ msgEl.classList.remove('show'); }, ms); }
+  }
+  function ocultarAviso(){
+    clearTimeout(msgTimer);
+    if(msgEl){ msgEl.classList.remove('show'); }
+  }
+  function marcar(e){
+    estado = e;
+    btn.classList.toggle('on', e === 'activo');
+    btn.classList.toggle('busy', e === 'buscando');
+    btn.title = e === 'off' ? 'Mi ubicación' : 'Dejar de mostrar mi ubicación';
+  }
+  function precision(m){ return '±' + metersToText(m).replace('.', ','); }
+  function contenido(e){
+    return '<b>Tu ubicación</b><br>Precisión aproximada: ' + precision(e.accuracy) +
+      '<br>Coordenadas: ' + e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5);
+  }
+
+  function iniciar(){
+    if(window.isSecureContext === false){
+      aviso('La ubicación solo funciona en páginas seguras (https).', 6000);
+      return;
+    }
+    primera = true;
+    marcar('buscando');
+    aviso('Buscando tu ubicación… acepta el permiso cuando el navegador lo pida.');
+    map.locate({ watch: true, setView: false, enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
+  }
+  function detener(){
+    map.stopLocate();
+    if(marker){ map.removeLayer(marker); marker = null; }
+    if(circle){ map.removeLayer(circle); circle = null; }
+    ultimo = null;
+    marcar('off');
+    ocultarAviso();
+  }
+
+  map.on('locationfound', function(e){
+    if(estado === 'off') return;
+    ultimo = e;
+    if(!marker){
+      circle = L.circle(e.latlng, { radius: e.accuracy, color: '#1A73E8', weight: 1, fillColor: '#1A73E8', fillOpacity: 0.12, interactive: false }).addTo(map);
+      marker = L.marker(e.latlng, {
+        icon: L.divIcon({ className: 'atlas-geo-icon', html: '<div class="atlas-geo-dot"><span class="atlas-geo-pulse"></span><span class="atlas-geo-core"></span></div>', iconSize: [22, 22], iconAnchor: [11, 11] }),
+        keyboard: false, zIndexOffset: 1000
+      }).addTo(map);
+      marker.bindPopup(function(){ return ultimo ? contenido(ultimo) : ''; });
+    } else {
+      marker.setLatLng(e.latlng);
+      circle.setLatLng(e.latlng);
+      circle.setRadius(e.accuracy);
+      if(marker.isPopupOpen()){ marker.getPopup().update(); }
+    }
+    if(primera){
+      primera = false;
+      marcar('activo');
+      map.flyToBounds(circle.getBounds(), { maxZoom: 14, duration: 1.2 });
+      aviso(e.accuracy > 5000
+        ? 'Ubicación aproximada (' + precision(e.accuracy) + '). Con el GPS activado y al aire libre se obtiene mayor precisión.'
+        : 'Estás aquí. Toca el punto azul para ver las coordenadas.', 6000);
+    }
+  });
+
+  map.on('locationerror', function(e){
+    if(estado === 'off') return;
+    if(marker && e.code !== 1){
+      aviso('Se perdió la señal de ubicación. Seguimos intentando…', 4000);
+      return;
+    }
+    var texto = e.code === 1
+      ? 'No se pudo acceder a tu ubicación. Permite el acceso a la ubicación para este sitio en la configuración del navegador y vuelve a intentar.'
+      : (e.code === 2
+        ? 'No se pudo determinar tu ubicación. Revisa que el GPS o la ubicación del dispositivo estén activados.'
+        : 'La ubicación tardó demasiado. Intenta de nuevo, de preferencia al aire libre.');
+    detener();
+    aviso(texto, 9000);
+  });
+
+  var Control = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd: function(){
+      var bar = L.DomUtil.create('div', 'leaflet-bar atlas-geo-btn');
+      btn = L.DomUtil.create('a', '', bar);
+      btn.href = '#';
+      btn.setAttribute('role', 'button');
+      btn.setAttribute('aria-label', 'Mi ubicación');
+      btn.title = 'Mi ubicación';
+      btn.innerHTML = ICON;
+      L.DomEvent.disableClickPropagation(bar);
+      L.DomEvent.on(btn, 'click', function(ev){
+        L.DomEvent.preventDefault(ev);
+        if(estado === 'off'){ iniciar(); } else { detener(); }
+      });
+      return bar;
+    }
+  });
+  new Control().addTo(map);
+})();
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
