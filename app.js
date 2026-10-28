@@ -542,7 +542,7 @@ function htmlBrToParagraphs(text){
     var row = document.createElement('div');
     row.className = 'scale-item';
     row.innerHTML = '<span class="scale-dot" style="background:'+color+';"></span>' +
-      '<div><h4>'+escapeHtml(label)+'</h4><p>'+desc+'</p></div>';
+      '<div><h4>'+escapeHtml(label.trim().toLowerCase() === 'extinto' ? 'Silenciada' : label)+'</h4><p>'+desc+'</p></div>';
     list.appendChild(row);
   });
 })();
@@ -607,8 +607,8 @@ function htmlBrToParagraphs(text){
   var pctPeligro = totalPueblos ? Math.round(nPeligroOMas/totalPueblos*100) : 0;
 
   var highlights = [
-    { num: nPeligroOMas+' de '+totalPueblos+' ('+pctPeligro+'%)', txt:'idiomas indígenas se encuentran entre los niveles "en peligro" y "extinto".' },
-    { num: nCriticaOMas, txt:'idiomas están en situación crítica o ya silenciados/extintos.' }
+    { num: nPeligroOMas+' de '+totalPueblos+' ('+pctPeligro+'%)', txt:'idiomas indígenas se encuentran entre los niveles "en peligro" y "silenciada".' },
+    { num: nCriticaOMas, txt:'idiomas están en situación crítica o ya silenciados.' }
   ];
   var hRow = document.getElementById('highlight-row');
   highlights.forEach(function(h){
