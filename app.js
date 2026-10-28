@@ -17,8 +17,8 @@ var GRADO_LABELS = {
   'seriamente en peligro':'Seriamente en peligro',
   'entre seriamente en peligro y situacion critica':'Entre seriamente en peligro y situación crítica',
   'situacion critica':'Situación crítica',
-  'entre situacion critica y extinta':'Entre situación crítica y extinto',
-  'extinto':'Extinto (silenciada)'
+  'entre situacion critica y extinta':'Entre situación crítica y silenciada',
+  'extinto':'Silenciada'
 };
 
 function norm(s){
@@ -310,7 +310,7 @@ function buildLegend(){
   if(colorMode === 'vitalidad'){
     var present = {};
     ATLAS_DATA.pueblos.concat(ATLAS_DATA.comunidades).forEach(function(it){
-      var g = norm(it.props['Grado de vitalidad'] || it.props['Grado de vitalidad de la lengua'] || '');
+      var g = gradoCanon(it.props['Grado de vitalidad'] || it.props['Grado de vitalidad de la lengua'] || '');
       if(g) present[g] = it.color_vitalidad;
     });
     GRADO_ORDER.forEach(function(g){
@@ -1604,7 +1604,7 @@ function fondoNivel(g, colorBase){
 })();
 // Reconoce variantes de escritura del grado de vitalidad y devuelve la clave de GRADO_ORDER
 function gradoCanon(texto){
-  function canon(s){ return norm(s).replace(/[^a-z ]+/g, ' ').replace(/extinto/g, 'extinta').replace(/\s+/g, ' ').trim(); }
+  function canon(s){ return norm(s).replace(/[^a-z ]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/extinto|silenciada/g, 'extinta').replace(/extinta o extinta/g, 'extinta'); }
   var t = canon(texto), exacta = '', prefijo = '';
   if(!t) return '';
   GRADO_ORDER.forEach(function(g){
@@ -1852,6 +1852,18 @@ function gradoCanon(texto){
   });
   new Control().addTo(map);
 })();
+// Grado "extinto" → "silenciada" en los popups de Pueblos y Comunidades focalizadas
+['pueblos', 'comunidades'].forEach(function(k){
+  ATLAS_DATA[k].forEach(function(it){
+    ['Grado de vitalidad', 'Grado de vitalidad de la lengua'].forEach(function(campo){
+      var v = it.props[campo];
+      if(!v) return;
+      var g = gradoCanon(v);
+      if(g === 'extinto'){ it.props[campo] = 'Silenciada'; }
+      else if(g === 'entre situacion critica y extinta'){ it.props[campo] = 'Entre situación crítica y silenciada'; }
+    });
+  });
+});
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
