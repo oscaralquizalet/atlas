@@ -1,5 +1,5 @@
 (function(){
-'use strict'; ATLAS_DATA.pueblos = ATLAS_DATA.pueblos.filter(function(p){ return ['ninguna lengua','takana'].indexOf(String(p.name).trim().toLowerCase()) === -1; });
+'use strict'; ATLAS_DATA.comunidades.forEach(function(c){ if(fotoSlug(c.name) === 'puerto-mendez'){ c.lat = -14.858782; c.lng = -66.693254; } }); ATLAS_DATA.pueblos = ATLAS_DATA.pueblos.filter(function(p){ return ['ninguna lengua','takana'].indexOf(String(p.name).trim().toLowerCase()) === -1; });
 
 var GRADO_ORDER = [
   'no corre peligro','estable pero en peligro','vulnerable','entre vulnerable y en peligro',
