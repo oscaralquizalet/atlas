@@ -1864,6 +1864,72 @@ function gradoCanon(texto){
     });
   });
 });
+// Vitalidad lingüística: escala ampliada (7 niveles principales + 4 intermedios) y su justificación
+(function(){
+  var list = document.getElementById('scale-list');
+  if(!list) return;
+
+  var DESC_INTERMEDIOS = {
+    'entre vulnerable y en peligro': 'En algunas comunidades del territorio indígena la lengua está en condición vulnerable y en otras en peligro, o en una misma comunidad la lengua transita entre una categoría y la otra.',
+    'entre en peligro y seriamente en peligro': 'En algunas comunidades del territorio indígena la lengua está en peligro y en otras seriamente en peligro, o en una misma comunidad la lengua transita entre una categoría y la otra.',
+    'entre seriamente en peligro y situacion critica': 'En algunas comunidades del territorio indígena la lengua está seriamente en peligro y en otras en situación crítica, o en una misma comunidad la lengua transita entre una categoría y la otra.',
+    'entre situacion critica y extinta': 'En algunas comunidades del territorio indígena la lengua está en situación crítica y en otras ya silenciado o extinto, o en una misma comunidad la lengua transita entre una categoría y la otra.'
+  };
+
+  // Descripciones de los niveles principales, tomadas de las tarjetas ya construidas
+  var existentes = {};
+  Array.prototype.forEach.call(list.querySelectorAll('.scale-item'), function(it){
+    var h = it.querySelector('h4'), p = it.querySelector('p');
+    if(h && p){ existentes[gradoCanon(h.textContent)] = p.innerHTML; }
+  });
+  if(!Object.keys(existentes).length) return;
+
+  list.innerHTML = '';
+  GRADO_ORDER.forEach(function(g){
+    var desc = existentes[g] || DESC_INTERMEDIOS[g];
+    if(!desc) return;
+    var base = (ATLAS_DATA.grado_color && ATLAS_DATA.grado_color[g]) || '#999999';
+    var row = document.createElement('div');
+    row.className = 'scale-item';
+    row.innerHTML = '<span class="scale-dot" style="background:' + fondoNivel(g, base) + ';"></span>' +
+      '<div><h4>' + escapeHtml(GRADO_LABELS[g]) + '</h4><p>' + desc + '</p></div>';
+    list.appendChild(row);
+  });
+
+  // Justificación de los niveles intermedios, debajo del texto sobre los grados de peligro (UNESCO, 2010)
+  var JUSTIFICACION = 'A los niveles de la escala de la UNESCO se añadieron cuatro niveles intermedios, a partir del trabajo de campo. La vitalidad de un mismo idioma no es homogénea: varía de una comunidad a otra y, a veces, dentro de una misma comunidad, sobre todo cuando los pueblos habitan territorios discontinuos o multiétnicos. Los niveles intermedios reflejan estos matices sin forzar una sola categoría y se identifican con el color combinado de los dos niveles que los limitan.';
+  var re = /Grados de peligro en relaci[oó]n con la transmisi[oó]n/i;
+
+  var raiz = null;
+  Array.prototype.forEach.call(document.querySelectorAll('nav.mainnav a[href^="#"]'), function(a){
+    if(norm(a.textContent).indexOf('vitalidad') !== -1){ raiz = document.getElementById(a.getAttribute('href').slice(1)); }
+  });
+  raiz = raiz || list.parentNode;
+
+  function buscar(n){
+    for(var i = 0; i < n.children.length; i++){
+      if(re.test(n.children[i].textContent)){
+        var r = buscar(n.children[i]);
+        if(r){ return r; }
+      }
+    }
+    return re.test(n.textContent) ? n : null;
+  }
+  var punto = buscar(raiz);
+  var bloque = punto ? ((punto.closest && punto.closest('p, div, li, h3, h4, h5')) || punto) : null;
+
+  var p = document.createElement('p');
+  p.textContent = JUSTIFICACION;
+  if(bloque && bloque !== raiz){
+    if(bloque.tagName === 'P'){ p.className = bloque.className; }
+    else { p.style.cssText = 'margin:8px 0 16px;line-height:1.6;'; }
+    bloque.parentNode.insertBefore(p, bloque.nextSibling);
+  } else {
+    p.style.cssText = 'margin:8px 0 16px;line-height:1.6;';
+    list.parentNode.insertBefore(p, list);
+  }
+  window.dispatchEvent(new Event('resize'));
+})();
 // IIALI
 (function(){
   var raw = refs['INSTITUTO IBEROAMERICANO DE LENGUAS INDÍGENAS'] || '';
